@@ -1,5 +1,7 @@
 # Trec Ideas
+
 ## 1. Classify the document
+
 Using article title and brief summary of the article, an LLM will classify the document based on the following bins:
 
 | Bin   | Name                      | What it signals                                                  | Example                                                    |
@@ -21,7 +23,11 @@ These require minimal effort, using a search API an LLM should easily be able to
 
 * Identify the core claim
 
-Set up LLMs in a debate format. One agent supports the claim, one agent refutes the claim, and one agent is the moderator. Throughout the conversation with these two agents the moderator will be generating the summary of both sides, and the moderator will have access to a Google search API to verify the claims made in the debate. At the end of the report the moderator will then give a closing remark on the claim.
+Set up LLMs in a debate format. One agent supports the claim (has access to the full document), one agent refutes the claim (has access to the document), and one agent is the moderator. Throughout the conversation with these two agents the moderator (will not have acess to the document) will be generating the summary of both sides, and the moderator will have access to a Google search API to verify the claims made in the debate. At the end of the report the moderator will then give a closing remark on the claim.
+
+<p>
+
+The moderator will essentially be doing a form of lateral reading by fact checking both sides of the debate.
 
 ### Bin 5
 
