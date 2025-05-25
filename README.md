@@ -24,14 +24,9 @@ These require minimal effort, using a search API or an LLMs internal context sho
 #### Bins 3-4
 
 * Identify the core claim
+Set up AI agents in debate format (see <code>Debate Format</code> below). At the end of the debate the moderator will generate a context summary based on the arguments made by the agents. Throughout the debate the moderator will also be able to fact check arguments made by the agents (see <code>Information Retrieval</code> below).
 
-Set up LLMs in a debate format. One agent supports the claim (has access to the full document), one agent refutes the claim (has access to the document), and one agent is the moderator. Throughout the conversation with these two agents the moderator (will not have acess to the document) will be generating the summary of both sides, and the moderator will have access to a Google search API to verify the claims made in the debate. At the end of the report the moderator will then give a closing remark on the claim.
-
-> See more more details on information retrieval in the <code>Information Retrieval</code> section.
-
-<p>
-
-The moderator will essentially be doing a form of lateral reading by fact checking both sides of the debate.
+The moderator will essentially be doing a form of <b>lateral reading</b> by fact checking both sides of the debate.
 
 #### Bin 5
 
@@ -53,7 +48,7 @@ flowchart LR
 ```
 
 1. EmbedQuery: convert the user’s question into a vector (e.g. OpenAI embeddings).
-2. VectorDB: search your local FAISS/Pinecone/Weaviate index for the top-K semantically closest docs.
+2. VectorDB: search your local FAISS/Pinecone/Weaviate (clueweb for us) index for the top-K semantically closest docs.
 3. KeywordIndex: run a BM25 (or Elasticsearch) query in parallel for exact term matches.
 4. Merge & Rank: unify those two lists, dedupe, then rank by a combined score (e.g. α·cosine + (1−α)·BM25).
 5. Threshold Check: if your best candidate’s score is below a set threshold, it likely means “I don’t really know this locally”—so fall back to a live web search API.
