@@ -2,4 +2,11 @@ clueweb
 .DS_Store
 .conda
 .*
-api_key.txt
+debate_formats/ping_pong/prompts/opponent_1
+debate_formats/ping_pong/prompts/opponent_1.txt
+debate_formats/ping_pong/prompts/opponent_2
+debate_formats/ping_pong/prompts/opponent_2.txt
+debate_formats/ping_pong/prompts/proponent_1
+debate_formats/ping_pong/prompts/proponent_1.txt
+debate_formats/ping_pong/prompts/proponent_2
+debate_formats/ping_pong/prompts/proponent_2.txt
