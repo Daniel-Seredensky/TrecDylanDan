@@ -2,7 +2,7 @@ from openai import OpenAI
 import os
 
 client = OpenAI(
-    api_key="",
+    api_key=open("api_key.txt").read(),
 )
 
 def main():
@@ -14,4 +14,4 @@ def main():
     print(response.output_text)
 
 if __name__ == "__main__":
-    main() 
+    main()
