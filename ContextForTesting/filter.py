@@ -5,7 +5,7 @@ DANDOCUMENT = 'clueweb22-en0024-53-03398'
 DYLANOUT = 'ContextDylan.jsonl'
 DANOUT = 'Context.jsonl'
 
-DOCUMENT = DYLANDOCUMENT
+DOCUMENT = DANDOCUMENT
 
 def filter_relevant_documents():
     # Read the qrels file as a space-delimited dataframe
@@ -29,7 +29,7 @@ def create_context_jsonl(assessed_documents, filtered_df, jsonl_file_path):
     
     # Read the jsonl file and create Context.jsonl
     with open(jsonl_file_path, 'r', encoding='utf-8') as input_file, \
-         open(DYLANOUT, 'w', encoding='utf-8') as output_file:
+         open(DANOUT, 'w', encoding='utf-8') as output_file:
         
         found_documents = set()
         
@@ -43,7 +43,8 @@ def create_context_jsonl(assessed_documents, filtered_df, jsonl_file_path):
                     context_entry = {
                         'Document': clue_web_id,
                         'Clean-Text': json_entry.get('Clean-Text', ''),
-                        'Relevance': relevance_dict.get(clue_web_id, 0)
+                        'Relevance': relevance_dict.get(clue_web_id, 0),
+                        'URL': json_entry.get('URL'," "),
                     }
                     
                     output_file.write(json.dumps(context_entry) + '\n')

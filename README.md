@@ -58,6 +58,8 @@ See more [Here](https://chatgpt.com/share/68336792-7d48-8012-91b2-b471b190bcf7)
 
 ## Possible Debate Formats
 
+> REMOVE MODERATOR 
+
 ### 1. Mini Oxford-Style LLM Debate (≈7 turns)
 
 * **Roles**
