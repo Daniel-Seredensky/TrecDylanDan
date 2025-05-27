@@ -1,2 +1,4 @@
 clueweb
 .DS_Store
+.conda
+.*
