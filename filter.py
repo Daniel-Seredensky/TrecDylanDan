@@ -2,6 +2,8 @@ import pandas as pd
 import json
 DYLANDOCUMENT = 'clueweb22-en0042-56-04016'
 DANDOCUMENT = 'clueweb22-en0024-53-03398'
+DYLANOUT = 'ContextDylan.jsonl'
+DANOUT = 'Context.jsonl'
 
 DOCUMENT = DYLANDOCUMENT
 
@@ -27,7 +29,7 @@ def create_context_jsonl(assessed_documents, filtered_df, jsonl_file_path):
     
     # Read the jsonl file and create Context.jsonl
     with open(jsonl_file_path, 'r', encoding='utf-8') as input_file, \
-         open('ContextDylan.jsonl', 'w', encoding='utf-8') as output_file:
+         open(DYLANOUT, 'w', encoding='utf-8') as output_file:
         
         found_documents = set()
         
