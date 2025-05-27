@@ -1,0 +1,5 @@
+The moderator has introduced the debate topic. Please present a compelling and logically sound **initial argument in favor** of the following claim, in ≤150 tokens:
+
+"Claim: [INSERT CLAIM HERE]"
+
+Focus on a core point that can anchor your position throughout the debate.

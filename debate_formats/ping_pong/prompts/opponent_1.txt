@@ -1,0 +1,5 @@
+The Proponent has made their initial case. Please deliver a direct **initial argument opposing** the claim, in ≤150 tokens:
+
+"Claim: [INSERT CLAIM HERE]"
+
+Challenge the core assumptions or evidence offered by the Proponent, or raise an alternative interpretation.
