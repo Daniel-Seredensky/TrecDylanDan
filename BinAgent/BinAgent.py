@@ -96,7 +96,7 @@ if __name__ == "__main__":
     Dan = "clueweb22-en0024-53-03398"
     Malaria = "clueweb22-en0019-43-01843"
     Oliwia = "clueweb22-en0030-87-05450"
-    BinAgent.bin_document(Oliwia)
+    BinAgent.bin_document(Dylan)
 
     load_dotenv()
     client = OpenAI(api_key=os.getenv("API_KEY"))
