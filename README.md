@@ -1,5 +1,35 @@
 # Trec Ideas
 
+## New Idea 
+
+``` mermaid 
+flowchart TD
+  %% Main flow
+  A[Article] 
+    -->|query generation based on outline| B[Information Retrieval]
+  B 
+    -->|update outline| C{Evaluate Outline}
+  C 
+    -->|bad| A
+  C 
+    -->|good| D[Debate]
+  D --> E[Report Generation]
+
+  %% Sub-process for Information Retrieval
+  subgraph "Information Retrieval"
+    direction TB
+    IR1[Search] 
+      --> IR2[Grab top X docs]
+    IR2 --> IR3[Rank top Y title/header pairs]
+    IR3 --> IR4[Read snippets from top Y docs]
+    IR4 --> IR5[Update outline]
+  end
+
+  %% Hook subgraph back into main flow
+  B --> IR1
+  IR5 --> C
+```
+
 ## Main Idea
 
 ### 1. Classify the document
