@@ -80,11 +80,11 @@ if __name__ == "__main__":
 
     load_dotenv()
     client = OpenAI(api_key=os.getenv("API_KEY"))
-    prompt = create_system_prompt(Oliwia)
+    prompt = create_system_prompt(Dan)
 
     response = client.responses.create(
         model="o3-mini",
-        input=create_system_prompt(Oliwia),
+        input=create_system_prompt(Dan),
     )
     with open('BinAgent/DerivedData/Result.json', 'w') as f:
         text = response.output_text

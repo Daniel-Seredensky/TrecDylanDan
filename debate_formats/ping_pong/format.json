@@ -1,7 +1,7 @@
 {
   "agents": [
-    { "name": "Proponent", "system_prompt": "system_prompt_1" },
-    { "name": "Opponent", "system_prompt": "system_prompt_1" }
+    { "name": "Proponent", "system_prompt": "system_prompt_1.txt" },
+    { "name": "Opponent", "system_prompt": "system_prompt_1.txt" }
   ],
   "sequence": [
     {
