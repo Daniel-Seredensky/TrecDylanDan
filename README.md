@@ -3,7 +3,7 @@
 ## New Idea 
 
 ``` mermaid 
-flowchart TD
+flowchart LR
   %% Main flow
   A[Article] 
     -->|query generation based on outline| B[Information Retrieval]
