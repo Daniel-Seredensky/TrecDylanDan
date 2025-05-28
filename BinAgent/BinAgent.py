@@ -85,7 +85,7 @@ class BinAgent:
             model="o3-mini",
             input= prompt,
         )
-        with open('BinAgent/DerivedData/Result.json', 'w') as f:
+        with open('DerivedData/BinAgent/Result.json', 'w') as f:
             text = response.output_text
             sub = text.replace("```json", "").replace("```", "")
             f.write(sub)
@@ -96,18 +96,4 @@ if __name__ == "__main__":
     Dan = "clueweb22-en0024-53-03398"
     Malaria = "clueweb22-en0019-43-01843"
     Oliwia = "clueweb22-en0030-87-05450"
-    BinAgent.bin_document(Dylan)
-
-    load_dotenv()
-    client = OpenAI(api_key=os.getenv("API_KEY"))
-    prompt = create_system_prompt(Dan)
-
-    response = client.responses.create(
-        model="o3-mini",
-        input=create_system_prompt(Dan),
-    )
-    with open('BinAgent/DerivedData/Result.json', 'w') as f:
-        text = response.output_text
-        sub = text.replace("```json", "").replace("```", "")
-        f.write(sub)
-    print(response.output_text)  # Print to console
+    BinAgent.bin_document(Dan)
