@@ -1,3 +1,3 @@
 The Moderator has shared counter-evidence, and the Opponent has presented their view.
 
-Now, provide a **concise rebuttal** (≤100 tokens) that defends your original stance and addresses both the Opponent’s main argument and the Moderator’s evidence.
+Now, provide a **concise rebuttal** that defends your original stance and addresses both the Opponent’s main argument and the Moderator’s evidence.

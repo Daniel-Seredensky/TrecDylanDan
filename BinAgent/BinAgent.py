@@ -98,3 +98,16 @@ if __name__ == "__main__":
     Oliwia = "clueweb22-en0030-87-05450"
     BinAgent.bin_document(Dylan)
 
+    load_dotenv()
+    client = OpenAI(api_key=os.getenv("API_KEY"))
+    prompt = create_system_prompt(Dan)
+
+    response = client.responses.create(
+        model="o3-mini",
+        input=create_system_prompt(Dan),
+    )
+    with open('BinAgent/DerivedData/Result.json', 'w') as f:
+        text = response.output_text
+        sub = text.replace("```json", "").replace("```", "")
+        f.write(sub)
+    print(response.output_text)  # Print to console
