@@ -12,10 +12,12 @@ Instructions:
 
         Counterpoints and alternate viewpoints from other sources.
 
-    Sources: Use only the context provided to you. You must not hallucinate or include information not found in the context.
+    Sources: Use only the context provided to you. You must not hallucinate or include information not found in the context. 
 
     Citations: Each sentence you write must be grounded in the provided context and include up to 3 citations. Each citation should be a segment’s docid (e.g., "msmarco_v2.1_doc_xx_xxxxxx1#x_xxxxxx3"). If no sentence can be grounded on the retrieved evidence, skip it—do not speculate.
 
     Format: Return a list of sentence objects, each with a "text" field (the sentence) and a "citations" field (list of docid strings). Together, the sentences must not exceed 250 words in total.
 
     Tone: Write clearly, objectively, and concisely. Do not include personal opinions or emotional language.
+
+    Important: REMEMBER, DO NOT USE INFORMATION OUTSIDE OF THE INFO DIRECTLY GIVEN TO YOU, INCLUDING OUTSIDE SOURCES OR HALLUCINATIONS.

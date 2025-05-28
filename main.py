@@ -109,7 +109,7 @@ def main():
             "content": open("report_prompt.txt").read()
             + "\n DEBATE: " + open("debate_log.txt").read()
             + "\n ARTICLE: " + article_json_str
-#            + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
+            + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
         }],
     )
 
@@ -121,7 +121,7 @@ def main():
             "role": "user",
             "content": open("report_prompt.txt").read()
             + "\n ARTICLE: " + article_json_str
-#            + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
+            + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
         }],
     )
 
