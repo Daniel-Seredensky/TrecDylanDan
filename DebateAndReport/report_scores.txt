@@ -1,17 +1,17 @@
-Here are my scores and rationale:
+Report 1 – Score: 88/100  
+Reasoning:  
+• Coverage & Accuracy (25/30): Hits all major factual points from the joint U.S.-Germany statement—Ukraine’s consent, sanctions, reverse‐flow guarantees, transit‐extension and the Green Fund—correctly correcting the article’s claim on “contingent on consent.”  
+• Sourcing & Attribution (28/30): Every factual claim is tied to a specific document citation. The lone uncited point (on missing direct quotes) is clearly marked as analysis.  
+• Context & Balance (20/25): Notes both government commitments and the critics’ doubts; flags the absence of binding language. Explicitly acknowledges the article’s omission of direct agreement text, which is a valuable transparency gesture.  
+• Expert Framing (7/10): Identifies Maria Shagina’s credentials, grounding the analysis in expertise—but could deepen context on her perspective or potential biases.  
 
-1. Report 1: Score 90/100  
-Reasons:
-• Accuracy and sourcing (–5): Every major factual claim in R1 maps cleanly to the source documents (the joint statement, the German pledge, the gas-transit extension, the reverse-flow capacity pledge, the Green Fund figures, and the critiques).  
-• Attribution (–3): R1 consistently cites its sources and even calls out that Maria Shagina’s own piece “accurately summarizes these commitments but foregrounds critiques.”  
-• Balance and context (–2): R1 highlights both the headline commitments and the immediate reactions (Ukraine and Poland criticizing the deal’s non-binding nature) as well as the analysts’ view that the measures are “decent though non-binding.”  
-• Minor omission (–5): Like R2, R1 doesn’t flag that the overarching agreement remained formally contingent on Ukraine’s consent—an important caveat emphasized in Shagina’s article and one that bears on the deal’s eventual enforceability.
+Areas for improvement: could include sample language from the joint statement to illustrate the “vagueness” claim and give readers a clearer basis for judgment.
 
-2. Report 2: Score 85/100  
-Reasons:
-• Accuracy and sourcing (–7): R2 also tracks the core provisions (sanctions pledges, reverse-flow capacity, transit-extension envoy, Green Fund figures) and correctly notes that U.S. and German officials “expressed readiness to impose new sanctions.”  
-• Attribution (–3): It footnotes its claims to the same sources, and it appropriately flags that “analysts and Ukrainian officials . . . criticized the agreement’s commitments as non-binding.”  
-• Balance and context (–3): R2 is clear and concise, but it lumps together “analysts and Ukrainian officials” without distinguishing Poland’s separate critique, and it doesn’t capture the analysts’ specific characterization (“decent though non-binding”).  
-• Minor omission (–4): Like R1, it omits mention of the deal’s formal contingency on Ukraine’s consent (a key point in Shagina’s narrative).  
+Report 2 – Score: 82/100  
+Reasoning:  
+• Coverage & Accuracy (23/30): Accurately summarizes the same set of commitments and critiques, including the consent issue, sanctions, reverse flows, transit extension and the Green Fund. Slightly less explicit in distinguishing the article’s framing vs. the primary text.  
+• Sourcing & Attribution (27/30): Most claims are cited to the same MSMARCO documents. The first sentence (identifying the opinion piece) is uncited, but is largely descriptive.  
+• Context & Balance (17/25): Calls out “vague formulations” and lack of enforcement mechanisms, but does not flag the absence of direct text or discuss how those vagaries appear in the statement. Lacks an explicit note on missing direct quotes.  
+• Expert Framing (5/10): Begins with a reference to Shagina’s opinion piece but omits her institutional affiliation and expertise, weakening the report’s authority.  
 
-Summary: Both reports are well attributed, faithful to the underlying documents, and supply useful context on criticism and enforceability. R1 edges out R2 by slightly richer detail on who criticized the deal and the analysts’ exact wording.
+Areas for improvement: should introduce Shagina’s credentials, explicitly note where the joint statement text could have been quoted for clarity, and more sharply contrast the article’s assertions with the source document’s language.

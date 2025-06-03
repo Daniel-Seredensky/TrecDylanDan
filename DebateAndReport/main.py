@@ -2,8 +2,9 @@ import requests
 import json
 import report_generator as ReportGenerator
 import report_scorer as ReportScorer
+import report_shortener as ReportShortener
 
-url = "http://127.0.0.1:7862/api/v1/run/ff071340-7374-4b9b-b222-bb157ff5be7b"  # The complete API endpoint URL for this flow
+url = "http://127.0.0.1:7860/api/v1/run/91b0b37f-1f48-4933-ad65-94950bc22ad5"  # The complete API endpoint URL for this flow
 
 def write_report(includeDebate, path):
     if includeDebate:
@@ -76,6 +77,10 @@ try:
     
     write_report(True, "report_with_debate.json")
     write_report(False, "report_without_debate.json")
+
+    report_shortener = ReportShortener.ReportShortener()
+    while report_shortener.get_word_count(json.loads(open("report_with_debate.json", "r").read())) > 250:
+        report_shortener.shorten_report("report_with_debate.json")
 
     report_scorer = ReportScorer.ReportScorer()
     report_score = open("report_scores.txt", "w")

@@ -1,8 +1,34 @@
-The U.S. and Germany issued a Joint Statement on Support for Ukraine, European Energy Security, and our Climate Goals in July 2021, outlining measures to address Ukraine’s concerns over Nord Stream 2. ["msmarco_v2.1_doc_5.4"]  
-The statement did not make the pipeline’s completion explicitly contingent on Ukraine’s consent but committed to mitigating Russia’s potential coercive use of energy. ["msmarco_v2.1_doc_5.4"]  
-Germany pledged to take national action and press for EU-level measures, including sanctions, if Russia used energy as a weapon against Ukraine. ["msmarco_v2.1_doc_1.3","msmarco_v2.1_doc_5.4"]  
-Both countries expressed readiness to impose new sanctions on Russian energy exports under such circumstances. ["msmarco_v2.1_doc_1.3"]  
-They also committed to safeguard and increase reverse gas-flow capacity to Ukraine to protect it from future supply cuts. ["msmarco_v2.1_doc_5.4"]  
-Germany agreed to leverage all available means to extend Ukraine’s gas-transit deal with Russia by up to ten years beyond 2024 and to appoint a special envoy for these negotiations. ["msmarco_v2.1_doc_5.4","msmarco_v2.1_doc_3.2"]  
-A U.S.–German Climate and Energy Partnership was established to support Ukraine’s decarbonization via a Green Fund, with at least $175 million from Germany and a goal of mobilizing $1 billion. ["msmarco_v2.1_doc_5.3","msmarco_v2.1_doc_6.1"]  
-Analysts and Ukrainian officials, however, criticized the agreement’s commitments as non-binding and lacking concrete implementation mechanisms and security guarantees. ["msmarco_v2.1_doc_1.3","msmarco_v2.1_doc_4.1"]
+[  
+  {  
+    "text": "The report examines Maria Shagina’s July 27, 2021 opinion piece in The Moscow Times, which critiques the U.S.-Germany Nord Stream 2 agreement.",  
+    "citations": []  
+  },  
+  {  
+    "text": "Contrary to the article’s claim that the deal is contingent on Ukraine’s consent, the joint statement did not make completion conditional on Ukraine’s approval.",  
+    "citations": ["msmarco_v2.1_doc_5.4"]  
+  },  
+  {  
+    "text": "The text instead outlined measures to address Ukraine’s concerns, though critics questioned the binding nature and implementation mechanisms of those commitments.",  
+    "citations": ["msmarco_v2.1_doc_5.4","msmarco_v2.1_doc_1.3","msmarco_v2.1_doc_4.1"]  
+  },  
+  {  
+    "text": "It confirmed sanctions as a primary instrument to deter Russian energy coercion, with both the U.S. and Germany pledging readiness to impose new sanctions.",  
+    "citations": ["msmarco_v2.1_doc_1.3","msmarco_v2.1_doc_5.4"]  
+  },  
+  {  
+    "text": "Germany committed to safeguarding and increasing reverse gas flows to Ukraine, but analyses pointed to non-binding language dependent on market conditions.",  
+    "citations": ["msmarco_v2.1_doc_5.4","msmarco_v2.1_doc_4.1"]  
+  },  
+  {  
+    "text": "The statement explicitly aimed to extend Ukraine’s gas transit agreement beyond 2024 and appointed a German special envoy to facilitate an extension of up to ten years.",  
+    "citations": ["msmarco_v2.1_doc_5.4","msmarco_v2.1_doc_3.2"]  
+  },  
+  {  
+    "text": "The U.S.-Germany Climate and Energy Partnership established a Green Fund for Ukraine with initial German contributions of $175 million, targeting $1 billion in investments for decarbonization.",  
+    "citations": ["msmarco_v2.1_doc_5.4","msmarco_v2.1_doc_5.3"]  
+  },  
+  {  
+    "text": "Observers noted that while these elements align with the joint declaration, vague formulations and lack of enforcement mechanisms remain central trustworthiness concerns.",  
+    "citations": ["msmarco_v2.1_doc_4.1"]  
+  }  
+]
