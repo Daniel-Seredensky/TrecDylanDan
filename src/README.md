@@ -74,37 +74,37 @@ Multiple Question Evaluation Agents can process a full document of questions in 
 ``` mermaid
 
 flowchart TD
-    A[Start Agent Lifecycle]
-    B[Initialize QuestionAssessmentAgent]
-    C[Create Assistant (async)]
-    D[Create Thread]
-    E[Send User Question]
-    F[Kick-off Assistant Run]
-    G[Start Polling Loop<br>(iteration < MAX_ITERATIONS)]
-    H{run.status?}
-    I[Sleep POLL_INTERVAL_SECONDS]
-    K1[Get Latest Message & Update Status<br>(on completed)]
-    K2[Get Latest Message & Update Status<br>(on requires_action)]
-    L[Return {status, content}]
-    M[Dispatch Tool Calls]
-    N[Submit Tool Outputs]
-    Q[Unexpected State → Error]
-    R[Max Iterations Exceeded]
-    S[Send Fallback User Message]
-    T[Create Short Follow-up Run]
-    U{Short Run Status Completed?}
-    V[Get Latest Message & Update Status<br>(on short run)]
-    W[Return Last Status & Content]
+    A["Start Agent Lifecycle"]
+    B["Initialize QuestionAssessmentAgent"]
+    C["Create Assistant (async)"]
+    D["Create Thread"]
+    E["Send User Question"]
+    F["Kick-off Assistant Run"]
+    G["Start Polling Loop<br>(iteration < MAX_ITERATIONS)"]
+    H{"run.status?"}
+    I["Sleep POLL_INTERVAL_SECONDS"]
+    K1["Get Latest Message & Update Status<br>(on completed)"]
+    K2["Get Latest Message & Update Status<br>(on requires_action)"]
+    L["Return {status, content}"]
+    M["Dispatch Tool Calls"]
+    N["Submit Tool Outputs"]
+    Q["Unexpected State → Error"]
+    R["Max Iterations Exceeded"]
+    S["Send Fallback User Message"]
+    T["Create Short Follow-up Run"]
+    U{"Short Run Status Completed?"}
+    V["Get Latest Message & Update Status<br>(on short run)"]
+    W["Return Last Status & Content"]
 
     A --> B --> C --> D --> E --> F --> G --> H
-    H --> |queued / in_progress| I --> H
-    H --> |completed| K1 --> L
-    H --> |requires_action| M --> N --> K2 --> G
-    H --> |other| Q
+    H --> |"queued / in_progress"| I --> H
+    H --> |"completed"| K1 --> L
+    H --> |"requires_action"| M --> N --> K2 --> G
+    H --> |"other"| Q
 
-    G --> |iteration == MAX_ITERATIONS| R --> S --> T --> U
-    U --> |yes| V --> L
-    U --> |no| W
+    G --> |"iteration == MAX_ITERATIONS"| R --> S --> T --> U
+    U --> |"yes"| V --> L
+    U --> |"no"| W
 
 ``` 
 
@@ -113,18 +113,18 @@ flowchart TD
 ``` mermaid
 
 flowchart TD
-    A[Start: Receive Question]
-    B[LLM Generate BM25 Queries (6–12) & Seed Paragraph]
-    C[Parallel BM25 Search for Each Query]
-    D[RRF Rerank All Search Results]
-    E[Select Top 200 Reranked Documents]
-    F[Embed Top 200 & Index in Azure AI Search]
-    G[Hybrid Search: BM25 Queries + Seed Paragraph]
-    H[Retrieve Top 75 Document Metadata]
-    I[Pass Top 75 Metadata to LLM as Context]
-    J[LLM Document Selection (choose most relevant)]
-    K[Selected Documents → Detailed Reading]
-    L[End]
+    A["Start: Receive Question"]
+    B["LLM Generate BM25 Queries (6–12) & Seed Paragraph"]
+    C["Parallel BM25 Search for Each Query"]
+    D["RRF Rerank All Search Results"]
+    E["Select Top 200 Reranked Documents"]
+    F["Embed Top 200 & Index in Azure AI Search"]
+    G["Hybrid Search: BM25 Queries + Seed Paragraph"]
+    H["Retrieve Top 75 Document Metadata"]
+    I["Pass Top 75 Metadata to LLM as Context"]
+    J["LLM Document Selection (choose most relevant)"]
+    K["Selected Documents → Detailed Reading"]
+    L["End"]
 
     A --> B
     B --> C
