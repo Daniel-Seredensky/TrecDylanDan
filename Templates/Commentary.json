@@ -1,0 +1,17 @@
+{
+  "Qs": {
+    "Headline & Outlet Metadata": "Fill with verifiable facts only:\n• Headline text\n• Publication/outlet name\n• Publication date (YYYY‑MM‑DD or \"Unknown\")\n• Author name(s) exactly as credited\n• Outlet section label (e.g., Opinion, Editorial)\n• Ownership/funding structure & orientation tag (Left/C‑L/C/ C‑R/Right, etc.) with citation.\n\n*Sample chain‑of‑thought:* “The by‑line says ‘Opinion | The Washington Post’ dated 2025‑03‑18 … ownership under Nash Holdings, generally Center‑Left per Media Bias Fact Check.”",
+
+    "Author Background & Declared Viewpoint": "Summarize potential bias or expertise signals **external to the text**:\n• Author’s profession, past beats, public political affiliations, prior op‑eds.\n• Notable ideological statements or controversies.\n• Outlet editorial stance or endorsement history.\nIf nothing substantial is found, write: \"No additional background located.\"\n\n*Sample chain‑of‑thought:* “Columnist is senior fellow at AEI, regularly argues for free‑market reforms; book ‘End the Tax Burden’ (2022) indicates fiscal‑conservative lean…”",
+
+    "Thesis Statement": "Paraphrase in ≤ 40 words the core argument or position the author advances. Do **not** inject analysis here—just capture the claim clearly.\n\n*Sample chain‑of‑thought:* “Author argues that federal student‑loan forgiveness unfairly shifts costs onto blue‑collar taxpayers and should be overturned by Congress.”",
+
+    "Supporting Evidence List": "Create a markdown table capturing every distinct piece of support the author offers.\n| # | Evidence (quote or paraphrase) | Evidence Type (Fact / Statistic / Anecdote / Expert Quote / Analogy) | Fact vs. Opinion Flag | Source Cited? (Y/N) |\nInclude even rhetorical flourishes framed as evidence.\n\n*Sample chain‑of‑thought:* “Cites ‘analysts say plan costs $400 B’ → Statistic, Fact, Source Y (refers to CBO).”",
+
+    "Counterarguments": "Does the article acknowledge opposing views? Provide a short paragraph:\n• Counter‑viewpoint(s) summarized.\n• How the author addresses or dismisses them (rebuttal strength, tone, evidence used).\nIf no counterargument appears, state that explicitly.\n\n*Sample chain‑of‑thought:* “Author briefly notes critics who see forgiveness as stimulus; dismisses as ‘naïve’ without data ⇒ weak engagement.”",
+
+    "Persuasive Techniques": "Bullet list textual or structural devices used to persuade. Possible facets:\n• Emotional language / moral framing\n• Use of anecdotes or personal stories\n• Logical fallacies (straw man, slippery slope, ad hominem, etc.)\n• Repetition, rhetorical questions, hyperbole, sarcasm\n\n*Sample chain‑of‑thought:* “Invokes ‘hard‑working plumbers’ anecdote, uses phrase ‘crushing burden’ → emotional appeal; labels opponents ‘elitists’ → ad hominem.”",
+
+    "Fact‑Check of Empirical Claims": "Identify empirical (checkable) claims within the op‑ed and verify using IR snippets. Produce a markdown table:\n| # | Claim (paraphrase) | External Source Used | Verification Result (True / False / Mixed / Unverifiable) | Notes |\nIf the op‑ed presents **no** checkable facts, state that plainly.\n\n*Sample chain‑of‑thought:* “Claim: ‘Plan costs $400 B’ → CBO estimate confirms range → True. Claim: ‘70 % of benefits go to top quintile’ → Brookings shows figure is ~30 % → False.”"
+  }
+}

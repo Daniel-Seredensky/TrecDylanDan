@@ -1,0 +1,19 @@
+{
+  "Qs": {
+    "Article Metadata": "Fill with **verifiable bibliographic facts only** (no evaluation):\n• Full article title  \n• Journal / preprint server name  \n• DOI or unique identifier  \n• Publication date (YYYY‑MM‑DD)  \n• Peer‑review status (Published / In‑press / Preprint)  \n• Authors (list)  \n• Corresponding author affiliation(s)  \n• Study type (RCT, cohort, meta‑analysis, computational model, etc.)\n\n*Sample chain‑of‑thought:* “ArXiv lists DOI 10.5555/12345; it’s a preprint dated 2025‑03‑14, authors Smith & Chen, affiliating with MIT CSAIL …”",
+
+    "Research Question & Hypothesis": "State in 1–2 sentences **what the study is trying to discover or test** and the explicit or implied hypothesis. Use your own words but stay faithful to the paper.\n\n*Sample chain‑of‑thought:* “Authors aim to test whether a low‑dose mRNA booster raises neutralizing antibodies in adults ≥65 yrs; hypothesis: booster increases titers by ≥4× baseline …”",
+
+    "Methods Snapshot": "Give a concise but concrete overview:\n• Design (parallel RCT, crossover, observational, etc.)  \n• Sample size & key demographics  \n• Randomization & blinding procedures  \n• Controls / comparison groups  \n• Instruments / assays / data sources  \n• Primary statistical tests (e.g., t‑test, ANOVA, Cox model)\n\n*Sample chain‑of‑thought:* “Randomized 2 × 2 factorial; N = 320 adults, double‑blinded; used ELISA for IgG; primary analysis ANOVA with α = 0.05 …”",
+
+    "Key Results & Statistics": "Summarize **numerical findings** that back the main claims. Report effect sizes, confidence intervals, p‑values, or model coefficients. If several experiments exist, use bullets.\n\n*Sample chain‑of‑thought:* “Booster raised GMT from 55 → 240 (4.4×; 95 % CI 3.8–5.0; p<0.001). No significant difference in adverse events (RR 1.05, p = 0.41) …”",
+
+    "Limitations": "List (a) limitations the authors acknowledge and (b) additional weaknesses you infer (e.g., small N, short follow‑up, unmeasured confounders). Label each bullet **“Author‑stated”** or **“Inferred”**.\n\n*Sample chain‑of‑thought:* “Author‑stated: sample lacks ethnic diversity. Inferred: lab assays performed in single site—may limit generalizability …”",
+
+    "External Validation & Consensus": "Using IR snippets, provide at least three external signals of validation or skepticism. Present in a markdown table:\n| # | External Source (title/outlet) | Citations/Alt‑metric | Stance (Supports/Neutral/Challenges) | Note |\nIf citation counts are unavailable, mark “N/A”.\n\n*Sample chain‑of‑thought:* “Nature News cover story summarizes findings (Supports); PubPeer thread questions blinding (Challenges) …”",
+
+    "Funding & Conflict of Interest": "Report **all declared funding sources** (grants, industry sponsors) and **COI statements**. If the paper omits a COI section, write “No disclosure provided”. Use external data (e.g., Open Payments) if relevant.\n\n*Sample chain‑of‑thought:* “Funded by NIH R01AI‑999999 and Moderna unrestricted grant; author J.S. consults for BioPharma Inc. per disclosure …”",
+
+    "Replicability & Robustness Checklist": "Create a checklist table:\n| Criterion | Yes / No / Partial | Notes |\nCriteria to include at minimum: *Raw data shared*, *Code shared*, *Preregistered*, *Adequate statistical power*, *Independent replication attempted*, *Sensitivity analyses reported*.\n\n*Sample chain‑of‑thought:* “Raw data deposited in Dryad (Yes); preregistered on ClinicalTrials.gov (Yes); code not shared (No) …”"
+  }
+}

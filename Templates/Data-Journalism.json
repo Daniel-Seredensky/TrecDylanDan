@@ -1,0 +1,17 @@
+{
+  "Qs": {
+    "Metadata & Update Cadence": "Supply only externally checkable facts:\n• Headline text\n• Outlet name + publication date (ISO YYYY‑MM‑DD)\n• Author(s)\n• Stated update schedule (e.g., “updated weekly as new BLS data arrive”) — if none, write \"One‑off publication\"\n• If the piece is part of an ongoing series, note the series name and link.\n\n*Sample chain‑of‑thought:* “The graphic footer states ‘Last updated 2025‑05‑10’. Outlet is FiveThirtyEight; past items in the ‘Tracking Inflation’ series refreshed monthly…”",
+
+    "Core Question & Takeaway": "Articulate (a) the central question the article answers and (b) the single most important conclusion it offers. Keep both under 40 words each and avoid evaluative language.\n\n*Sample chain‑of‑thought:* “Q: ‘How fast are rents rising in major U.S. metros?’ Takeaway: ‘Rents are decelerating in Sun Belt cities but still exceeding national CPI in coastal metros.’”",
+
+    "Dataset Description": "Create a markdown table:\n| # | Dataset Name | Source / Owner | Timeframe | Rows / Size | Public Link | License |\nInclude *all* datasets explicitly referenced or linked. If the article aggregates multiple public tables into one, treat that as a distinct row titled “Compiled dataset”.\n\n*Sample chain‑of‑thought:* “Row 1: Zillow Observed Rent Index; 2018‑01 → 2025‑03; ~1.2 M rows…”",
+
+    "Methodology Summary": "Bullet the key analytic steps **as described or implied**:\n• Data cleaning/normalization\n• Statistical tests or models (regression, smoothing, clustering…)\n• Margin‑of‑error or confidence intervals\n• Any imputation or weighting\nInclude citations to the article’s wording (“The authors used LOESS smoothing…”).\n\n*Sample chain‑of‑thought:* “They ‘adjusted for seasonal effects using X‑13 ARIMA’; computed YoY percent change; no mention of heteroskedasticity checks…”",
+
+    "Visualization Audit": "List every major chart/graphic in a markdown table:\n| # | Figure Type (bar, line, choropleth…) | Variables Shown | Potential Misleading Features (truncated axis, non‑zero baseline, color scale bias, suppressed N/A) |\nIf no questionable design choices, explicitly say “None detected”.\n\n*Sample chain‑of‑thought:* “Fig 2 line chart truncates y‑axis at 40 %, exaggerating slope…”",
+
+    "Code & Reproducibility": "Answer Y/N: Is analysis code publicly available? If yes, give repo/URL and note language (e.g., ‘Python notebook, R script’). If no, state “Code not published”. Mention whether raw data are downloadable or behind paywall.\n\n*Sample chain‑of‑thought:* “GitHub repo linked in footer; contains Jupyter notebook with Matplotlib plots; datasets stored in /data.”",
+
+    "Limitations & Uncertainty": "Provide a bullet list of caveats that readers should keep in mind—draw from the article plus outside IR evidence.\n• Sampling bias or missing regions\n• Model assumptions\n• Data lag vs. real‑time relevance\n• Known disputes among experts\nIf the article already states limits, quote or paraphrase them; then add any additional issues surfaced via IR.\n\n*Sample chain‑of‑thought:* “Article admits ‘does not adjust rents for unit size’; IR found a Brookings critique on lagged Zillow coverage in rural counties…”"
+  }
+}

@@ -1,7 +1,20 @@
 clueweb
 .DS_Store
+*/.DS_Store
+*/*/.DS_Store
+*/*/*/.DS_Store
 .conda
 .*
-DerivedData/CluewebIndex
+DerivedData/CluewebIndex/*
+DerivedData/SearchResults/*
+DerivedData/BinAgent/*
+DerivedData/ContextBuilder/CurrentContext.txt
+
 *.class
 */*.class
+
+# Keep empty directories
+!DerivedData/CluewebIndex/.gitkeep
+!DerivedData/SearchResults/.gitkeep
+!DerivedData/BinAgent/.gitkeep
+!DerivedData/ContextBuilder/.gitkeep

@@ -1,0 +1,17 @@
+{
+  "Qs": {
+    "Headline & Outlet Metadata": "Fill only with externally verifiable facts:\n• Headline text\n• Outlet name\n• Publication date (YYYY‑MM‑DD or \"Unknown\")\n• Author name(s)\n• Article section (Markets, Earnings, Opinion, etc.)\n• Outlet ownership/funding (public company, nonprofit, etc.)\n• Common media‑bias label if available (cite source)\n\n*Sample chain‑of‑thought:* “Bloomberg piece dated 2025‑05‑12 by Eric Martin, section ‘Economy’. Bloomberg is owned by Bloomberg L.P., generally rated ‘Center’ by Ad‑Fontes…”",
+
+    "Author/Outlet Background": "Summarize potential bias signals **not in the article text**:\n• Author’s beat, past market calls, conflicts (e.g., ex‑employee of covered firm)\n• Outlet’s revenue model (subscriptions, ads, sponsored content)\n• Any historical retractions or pay‑for‑play allegations\nIf nothing noteworthy, write “No additional background found.”\n\n*Sample chain‑of‑thought:* “Reporter covers tech IPOs, once reprimanded for premature earnings leak. Outlet depends on terminal subscriptions…”",
+
+    "Key Financial Metrics Table": "Create a markdown table:\n| # | Metric Quoted | Value & Period | Context Provided? (Y/N) | Standard Benchmark for Context |\nInclude earnings per share, revenue, GDP, CPI, unemployment, debt ratios—anything the article cites that underpins its thesis.\n\n*Sample chain‑of‑thought:* “Metric 1: EPS Q1 2025 = $2.31, compared to $1.80 prior year → Context Y”",
+
+    "Data Source Audit": "List each numeric/data point with provenance in a markdown table:\n| # | Data Point | Source (SEC filing, BLS release, company PR, proprietary model…) | First‑hand? (Original/Secondary) | Reliability (1‑5) |\nScore reliability like fact‑checkers (5 = audited SEC report, 1 = anonymous blog).\n\n*Sample chain‑of‑thought:* “Revenue figure from 10‑Q → Original → 5. Inflation stat from commentator’s Substack → Secondary → 2.”",
+
+    "Analyst Commentary Bias Check": "Bullet‑list analyst/expert quotes and note any potential bias:\n• Employment (sell‑side bank, independent research, activist short‑seller)\n• Disclosed holdings/ratings (Buy, Hold, Sell)\n• Track‑record accuracy if known\n\n*Sample chain‑of‑thought:* “JPM analyst rates ‘Overweight’—works for underwriter of company’s bond issue...”",
+
+    "Macro Context & Historical Comparison": "Provide 3–5 sentences situating the article’s claims within broader economic trends:\n• Compare cited metrics to 1‑, 5‑, or 10‑year averages\n• Note business cycle phase, policy changes, or shocks (e.g., rate hikes)\n• Flag if article cherry‑picks an unusually favorable baseline.\n\n*Sample chain‑of‑thought:* “EPS growth appears large but is below 5‑yr CAGR; publication omits pandemic low base‑effect…”",
+
+    "Forward‑Looking Language Assessment": "Identify forward‑looking or speculative statements. Present in a markdown table:\n| # | Statement (paraphrase) | Modal Verbs/Adverbs Used | Evidence Offered? (Y/N) | Speculative Level (Low/Med/High) |\nInclude CEO forecasts, analyst price targets, macro predictions.\n\n*Sample chain‑of‑thought:* “Claim: ‘Shares could surge 30% next quarter’ → uses ‘could’ → Evidence N → Speculative High.”"
+  }
+}
