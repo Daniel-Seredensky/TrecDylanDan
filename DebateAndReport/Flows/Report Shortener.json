@@ -7,7 +7,7 @@
         "data": {
           "sourceHandle": {
             "dataType": "Prompt",
-            "id": "Prompt-JmaFI",
+            "id": "Prompt-UBAlB",
             "name": "prompt",
             "output_types": [
               "Message"
@@ -15,19 +15,19 @@
           },
           "targetHandle": {
             "fieldName": "system_message",
-            "id": "OpenAIModel-1KBNf",
+            "id": "OpenAIModel-BCsRd",
             "inputTypes": [
               "Message"
             ],
             "type": "str"
           }
         },
-        "id": "xy-edge__Prompt-JmaFI{œdataTypeœ:œPromptœ,œidœ:œPrompt-JmaFIœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-OpenAIModel-1KBNf{œfieldNameœ:œsystem_messageœ,œidœ:œOpenAIModel-1KBNfœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "id": "xy-edge__Prompt-UBAlB{œdataTypeœ:œPromptœ,œidœ:œPrompt-UBAlBœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-OpenAIModel-BCsRd{œfieldNameœ:œsystem_messageœ,œidœ:œOpenAIModel-BCsRdœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
         "selected": false,
-        "source": "Prompt-JmaFI",
-        "sourceHandle": "{œdataTypeœ:œPromptœ,œidœ:œPrompt-JmaFIœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "OpenAIModel-1KBNf",
-        "targetHandle": "{œfieldNameœ:œsystem_messageœ,œidœ:œOpenAIModel-1KBNfœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+        "source": "Prompt-UBAlB",
+        "sourceHandle": "{œdataTypeœ:œPromptœ,œidœ:œPrompt-UBAlBœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "OpenAIModel-BCsRd",
+        "targetHandle": "{œfieldNameœ:œsystem_messageœ,œidœ:œOpenAIModel-BCsRdœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
       },
       {
         "animated": false,
@@ -35,7 +35,7 @@
         "data": {
           "sourceHandle": {
             "dataType": "TextInput",
-            "id": "TextInput-EKlW3",
+            "id": "TextInput-AuFUz",
             "name": "text",
             "output_types": [
               "Message"
@@ -43,26 +43,26 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "OpenAIModel-1KBNf",
+            "id": "OpenAIModel-BCsRd",
             "inputTypes": [
               "Message"
             ],
             "type": "str"
           }
         },
-        "id": "xy-edge__TextInput-EKlW3{œdataTypeœ:œTextInputœ,œidœ:œTextInput-EKlW3œ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}-OpenAIModel-1KBNf{œfieldNameœ:œinput_valueœ,œidœ:œOpenAIModel-1KBNfœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "id": "xy-edge__TextInput-AuFUz{œdataTypeœ:œTextInputœ,œidœ:œTextInput-AuFUzœ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}-OpenAIModel-BCsRd{œfieldNameœ:œinput_valueœ,œidœ:œOpenAIModel-BCsRdœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
         "selected": false,
-        "source": "TextInput-EKlW3",
-        "sourceHandle": "{œdataTypeœ:œTextInputœ,œidœ:œTextInput-EKlW3œ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "OpenAIModel-1KBNf",
-        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œOpenAIModel-1KBNfœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+        "source": "TextInput-AuFUz",
+        "sourceHandle": "{œdataTypeœ:œTextInputœ,œidœ:œTextInput-AuFUzœ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "OpenAIModel-BCsRd",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œOpenAIModel-BCsRdœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
       },
       {
         "animated": false,
         "data": {
           "sourceHandle": {
             "dataType": "OpenAIModel",
-            "id": "OpenAIModel-1KBNf",
+            "id": "OpenAIModel-BCsRd",
             "name": "text_output",
             "output_types": [
               "Message"
@@ -70,25 +70,25 @@
           },
           "targetHandle": {
             "fieldName": "input_value",
-            "id": "TextOutput-DKrob",
+            "id": "TextOutput-lrT77",
             "inputTypes": [
               "Message"
             ],
             "type": "str"
           }
         },
-        "id": "xy-edge__OpenAIModel-1KBNf{œdataTypeœ:œOpenAIModelœ,œidœ:œOpenAIModel-1KBNfœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-TextOutput-DKrob{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-DKrobœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "id": "xy-edge__OpenAIModel-BCsRd{œdataTypeœ:œOpenAIModelœ,œidœ:œOpenAIModel-BCsRdœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-TextOutput-lrT77{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-lrT77œ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
         "selected": false,
-        "source": "OpenAIModel-1KBNf",
-        "sourceHandle": "{œdataTypeœ:œOpenAIModelœ,œidœ:œOpenAIModel-1KBNfœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "TextOutput-DKrob",
-        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-DKrobœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+        "source": "OpenAIModel-BCsRd",
+        "sourceHandle": "{œdataTypeœ:œOpenAIModelœ,œidœ:œOpenAIModel-BCsRdœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "TextOutput-lrT77",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-lrT77œ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
       }
     ],
     "nodes": [
       {
         "data": {
-          "id": "Prompt-JmaFI",
+          "id": "Prompt-UBAlB",
           "node": {
             "base_classes": [
               "Message"
@@ -97,7 +97,7 @@
             "conditional_paths": [],
             "custom_fields": {
               "template": [
-                "output_format"
+                "prompt"
               ]
             },
             "description": "Create a prompt template with dynamic variables.",
@@ -116,6 +116,7 @@
             "is_input": null,
             "is_output": null,
             "legacy": false,
+            "lf_version": "1.4.2",
             "metadata": {},
             "minimized": false,
             "name": "",
@@ -160,9 +161,9 @@
                 "type": "code",
                 "value": "from langflow.base.prompts.api_utils import process_prompt_template\nfrom langflow.custom import Component\nfrom langflow.inputs.inputs import DefaultPromptField\nfrom langflow.io import MessageTextInput, Output, PromptInput\nfrom langflow.schema.message import Message\nfrom langflow.template.utils import update_template_values\n\n\nclass PromptComponent(Component):\n    display_name: str = \"Prompt\"\n    description: str = \"Create a prompt template with dynamic variables.\"\n    icon = \"prompts\"\n    trace_type = \"prompt\"\n    name = \"Prompt\"\n\n    inputs = [\n        PromptInput(name=\"template\", display_name=\"Template\"),\n        MessageTextInput(\n            name=\"tool_placeholder\",\n            display_name=\"Tool Placeholder\",\n            tool_mode=True,\n            advanced=True,\n            info=\"A placeholder input for tool mode.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Prompt Message\", name=\"prompt\", method=\"build_prompt\"),\n    ]\n\n    async def build_prompt(self) -> Message:\n        prompt = Message.from_template(**self._attributes)\n        self.status = prompt.text\n        return prompt\n\n    def _update_template(self, frontend_node: dict):\n        prompt_template = frontend_node[\"template\"][\"template\"][\"value\"]\n        custom_fields = frontend_node[\"custom_fields\"]\n        frontend_node_template = frontend_node[\"template\"]\n        _ = process_prompt_template(\n            template=prompt_template,\n            name=\"template\",\n            custom_fields=custom_fields,\n            frontend_node_template=frontend_node_template,\n        )\n        return frontend_node\n\n    async def update_frontend_node(self, new_frontend_node: dict, current_frontend_node: dict):\n        \"\"\"This function is called after the code validation is done.\"\"\"\n        frontend_node = await super().update_frontend_node(new_frontend_node, current_frontend_node)\n        template = frontend_node[\"template\"][\"template\"][\"value\"]\n        # Kept it duplicated for backwards compatibility\n        _ = process_prompt_template(\n            template=template,\n            name=\"template\",\n            custom_fields=frontend_node[\"custom_fields\"],\n            frontend_node_template=frontend_node[\"template\"],\n        )\n        # Now that template is updated, we need to grab any values that were set in the current_frontend_node\n        # and update the frontend_node with those values\n        update_template_values(new_template=frontend_node, previous_template=current_frontend_node[\"template\"])\n        return frontend_node\n\n    def _get_fallback_input(self, **kwargs):\n        return DefaultPromptField(**kwargs)\n"
               },
-              "output_format": {
+              "prompt": {
                 "advanced": false,
-                "display_name": "output_format",
+                "display_name": "prompt",
                 "dynamic": false,
                 "field_type": "str",
                 "fileTypes": [],
@@ -174,13 +175,13 @@
                 "list": false,
                 "load_from_db": false,
                 "multiline": true,
-                "name": "output_format",
+                "name": "prompt",
                 "placeholder": "",
                 "required": false,
                 "show": true,
                 "title_case": false,
                 "type": "str",
-                "value": "[\n    {\n\t    \"text\": \"This is the first sentence.\",\n\t    \"citations\": [\n\t        \"msmarco_v2.1_doc_xx_xxxxxx1#x_xxxxxx3\",\n\t\t    \"msmarco_v2.1_doc_xx_xxxxxx2#x_xxxxxx4\",\n\t    ]\n    },\n\t{\n\t\t\"text\": \"This is the second sentence.\",\n\t    \"citations\": []\n    }\n]"
+                "value": "You are an expert report-shortening assistant whose sole task is to take a well-attributed fact-checking report (in JSON format) and produce a shorter version that preserves all essential facts, logical flow, and citation structure. Follow these instructions exactly:\n\n1. **Role & Objective**\n\n   * You are a specialist in condensation: you know how to distill a report’s meaning without sacrificing accuracy or context.\n   * Your goal is to reduce the total word count by approximately 40–50%, while maintaining every critical claim and its supporting citations.\n\n2. **Input Format**\n\n   * The input will always be a JSON array of objects, where each object contains:\n\n     * `\"text\"`: a complete sentence explaining a trust-worthiness finding or contextual insight.\n     * `\"citations\"`: an array of up to three MSMARCO segment IDs (e.g., `\"msmarco_v2.1_doc_5.4\"`) that ground that sentence.\n   * Example input:\n\n     ```json\n     [\n       {\n         \"text\": \"The U.S.-German agreement did not require Ukraine’s consent before completing Nord Stream 2, but rather set up measures to mitigate risks to Ukraine’s energy security.\",\n         \"citations\": [\"msmarco_v2.1_doc_5.4\"]\n       },\n       {\n         \"text\": \"Polish and Ukrainian officials criticized the deal’s nonbinding language, raising doubts about enforcement.\",\n         \"citations\": [\"msmarco_v2.1_doc_3.2\",\"msmarco_v2.1_doc_1.3\"]\n       },\n       {\n         \"text\": \"Maria Shagina is affiliated with the Geneva International Sanctions Network, lending expert credibility to her commentary.\",\n         \"citations\": []\n       }\n     ]\n     ```\n\n3. **Output Format**\n\n   * Return a valid JSON array of objects, using the exact same field names (`\"text\"`, `\"citations\"`), with no additional keys, comments, or metadata.\n   * Preserve the original ordering of ideas (i.e., do not reorder objects unless it is absolutely necessary to improve clarity).\n   * Every object in your output must still have a `\"text\"` string and a `\"citations\"` array (which may be empty).\n   * Do not introduce new citations or remove existing citation IDs—each original citation must remain attached to at least one sentence that conveys its fact.\n\n4. **Condensation Rules**\n\n   1. **Conciseness**\n\n      * Shorten each sentence by removing filler words, redundant phrases, or low-priority qualifiers, while retaining the core factual claim.\n      * If a single idea is expressed across two or more sentences, combine them into one clear, concise sentence when possible.\n   2. **Citation Integrity**\n\n      * Each citation ID must remain associated with the key fact it supports.\n      * If you merge two sentences that have separate citation lists, combine the two lists (removing duplicates).\n   3. **Preserve Core Content**\n\n      * Do not drop any major point: every unique element of trustworthiness—such as source credibility, claim verification, or context—must still appear.\n      * If an object’s `\"text\"` is purely transitional (e.g., “Furthermore, this highlights that…”), see if you can merge its content into an adjacent sentence. If merging would lose a distinct fact or citation, then shorten but keep it.\n   4. **Word-Count Target**\n\n      * Aim to reduce the entire JSON output’s word count by roughly 40–50%. For example, a 200-word report should become about 100–120 words total.\n      * Count only whitespace-delimited tokens when estimating word count.\n      * If you cannot meet the exact percentage, do not exceed 55% reduction. Priority is preserving information.\n\n5. **Style & Tone**\n\n   * Maintain an **objective, factual** tone—no leading language or commentary.\n   * Each `\"text\"` value must remain a self-contained, grammatically correct sentence.\n   * Avoid passive constructions only if active voice does not expand length; clarity is more important than strictly active voice.\n\n6. **Structure & Examples**\n\n   * **Original**:\n\n     ```json\n     {\n       \"text\": \"The U.S.-German agreement did not require Ukraine’s consent before completing Nord Stream 2, but rather set up measures to mitigate risks to Ukraine’s energy security.\",\n       \"citations\": [\"msmarco_v2.1_doc_5.4\"]\n     }\n     ```\n   * **Condensed**:\n\n     ```json\n     {\n       \"text\": \"The U.S.-German deal set measures to protect Ukraine’s energy security without requiring its explicit consent.\",\n       \"citations\": [\"msmarco_v2.1_doc_5.4\"]\n     }\n     ```\n   * **Merging Two Sentences**:\n\n     * **Original Pair**:\n\n       ```json\n       {\n         \"text\": \"Polish and Ukrainian officials criticized the deal’s nonbinding language, raising doubts about enforcement.\",\n         \"citations\": [\"msmarco_v2.1_doc_3.2\"]\n       },\n       {\n         \"text\": \"They argued that nonbinding measures would fail to protect Ukraine long-term.\",\n         \"citations\": [\"msmarco_v2.1_doc_1.3\"]\n       }\n       ```\n     * **Condensed Single Object**:\n\n       ```json\n       {\n         \"text\": \"Polish and Ukrainian officials said the deal’s nonbinding measures raised doubts about long-term protection for Ukraine.\",\n         \"citations\": [\"msmarco_v2.1_doc_3.2\",\"msmarco_v2.1_doc_1.3\"]\n       }\n       ```\n\n7. **Validation Checklist** (Before returning output, ensure):\n\n   * The JSON is syntactically valid (no trailing commas, proper brackets, etc.).\n   * Every object has exactly two fields: `\"text\"` (string) and `\"citations\"` (array of strings).\n   * The total word count is ≤ 55% of the original input’s word count (aim for 40–50%).\n   * No citation ID appears unless it still supports content in the shortened `\"text\"`.\n   * No new factual claims, interpretations, or opinions have been introduced.\n   * The output remains internally coherent and logically flows from one fact to the next.\n\n8. **Final Reminder**\n\n   * **Do not** return any explanatory text, analysis, or notes—only the shortened JSON array.\n   * **Do not** wrap the JSON in any markdown blocks or extra formatting.\n   * If any step above cannot be satisfied, explain why in a brief JSON object with a single key `\"error\"` and an explanatory sentence. Otherwise, return the shortened report JSON.\n\nUse these instructions to produce a concise, well-attributed, and readable shortened report every time."
               },
               "template": {
                 "_input_type": "PromptInput",
@@ -198,7 +199,7 @@
                 "tool_mode": false,
                 "trace_as_input": true,
                 "type": "prompt",
-                "value": "You are a professional fact-checker and media literacy expert. Your ultimate task is to generate a well-attributed report that provides background and context to help readers assess the trustworthiness of a given news article. You have previously generated queries, retrieved relevant text segments, and formulated critical questions. Now, based on this information, you must create a comprehensive report that addresses the most important trustworthiness concerns.\n\nCRITICAL REQUIREMENTS:\n1. WORD LIMIT: The entire report must not exceed 250 words total across all sentences.\n2. CITATIONS: Each sentence must have at most 3 references (segment docids from MS MARCO V2.1). Sentences can have zero citations if they serve as connecting/transitional sentences or provide general context that doesn't require grounding.\n3. GROUNDING: Factual claims and specific information must be cited from the retrieved segments. Skip questions that cannot be answered with available evidence.\n4. STRUCTURE: Generate individual sentences, each with their specific citations (or empty citations list for connecting sentences).\n5. PRIORITIZATION: The provided questions are ranked from most to least important. Focus on addressing the most important questions first. It's acceptable to leave less important questions unaddressed if you run out of space within the 250-word limit.\n6. THINKING FIRST: For each sentence, you must first provide a clear rationale explaining why this information is important for trustworthiness assessment and how it addresses the critical questions. Think through the evidence before crafting the sentence.\n\nREPORT FOCUS AREAS:\nYour report should address these key aspects of trustworthiness assessment:\n\n1. Source Investigation:\n- Publisher's background, reputation, and potential biases.\n- Author credentials, expertise, and past work.\n- Ownership, funding sources, and editorial policies.\n- Any conflicts of interest or credibility issues.\n\n2. Claims and Evidence Analysis:\n- Verification of central factual assertions.\n- Quality and reliability of evidence presented.\n- Missing context or alternative interpretations.\n- Methodology behind cited data or research.\n\n3. Information Origins:\n- Original sources of quotes, statistics, or claims.\n- Chain of information from primary sources.\n- Verification of attributed statements.\n\n4. Perspective and Balance:\n- Missing viewpoints or one-sided reporting.\n- Breadth of sources consulted.\n- Representation of different stakeholder perspectives.\n\n5. Context and Timing:\n- Broader context surrounding the story.\n- Timing of publication and potential motivations.\n- Related events or developments.\n\nCITATION GUIDELINES:\n- Use exact segment ids as provided in the retrieved segments.\n- Each sentence can have 0-3 citations.\n- Factual claims and specific information must be cited; connecting sentences and general context can have empty citations.\n- Only cite segments that directly support the sentence content.\n- If no relevant segments exist for some questions, skip those questions.\n\nWRITING STYLE:\n- Write clear, concise sentences suitable for general readers.\n- Maintain objectivity while highlighting trustworthiness concerns.\n- Focus on actionable insights that help readers make informed judgments.\n- Prioritize the most critical trustworthiness factors given the word limit.\n\nQUESTION PRIORITIZATION STRATEGY:\n- Start with the most important questions (ranked #1, #2, #3, etc.).\n- Thoroughly address high-priority questions before moving to lower-priority ones.\n- If space runs out, it's better to fully address fewer important questions than to superficially cover many.\n\nTHINKING PROCESS:\n- For each sentence, first provide a clear rationale explaining why this information is important for trustworthiness assessment.\n- Think through what specific evidence from the retrieved segments supports your sentence.\n- Consider how this sentence contributes to the overall trustworthiness evaluation.\n- Then craft the actual sentence based on your reasoning.\n\nSOURCES:\n- You may only use information available directly within the notes and article given to you.\n- Do NOT hallucinate any information.\n- NEVER access the internet or use ANY of your prior knowledge on the topic.\n- Act as though this is your first time reading the article and you can ONLY use the notes and what is DIRECTLY available.\n\nEXAMPLE OF OUTPUT FORMAT (.JSON):\n\n{output_format}\n\nRemember: Quality over quantity. It's better to thoroughly address fewer questions with strong evidence than"
+                "value": "{prompt}"
               },
               "tool_placeholder": {
                 "_input_type": "MessageTextInput",
@@ -229,22 +230,21 @@
           "showNode": true,
           "type": "Prompt"
         },
-        "dragging": false,
-        "id": "Prompt-JmaFI",
+        "id": "Prompt-UBAlB",
         "measured": {
-          "height": 411,
+          "height": 333,
           "width": 320
         },
         "position": {
-          "x": 241,
-          "y": 516
+          "x": 93,
+          "y": 134
         },
         "selected": false,
         "type": "genericNode"
       },
       {
         "data": {
-          "id": "OpenAIModel-1KBNf",
+          "id": "OpenAIModel-BCsRd",
           "node": {
             "base_classes": [
               "LanguageModel",
@@ -620,21 +620,21 @@
           "type": "OpenAIModel"
         },
         "dragging": false,
-        "id": "OpenAIModel-1KBNf",
+        "id": "OpenAIModel-BCsRd",
         "measured": {
           "height": 612,
           "width": 320
         },
         "position": {
-          "x": 664.3975752838436,
-          "y": 99.41907434346538
+          "x": 550.2448000000003,
+          "y": 123.87760000000006
         },
         "selected": false,
         "type": "genericNode"
       },
       {
         "data": {
-          "id": "TextInput-EKlW3",
+          "id": "TextInput-AuFUz",
           "node": {
             "base_classes": [
               "Message"
@@ -727,21 +727,21 @@
           "type": "TextInput"
         },
         "dragging": false,
-        "id": "TextInput-EKlW3",
+        "id": "TextInput-AuFUz",
         "measured": {
           "height": 229,
           "width": 320
         },
         "position": {
-          "x": 217.72000000000014,
-          "y": 219.3800000000002
+          "x": 104.22880000000043,
+          "y": 645.6376
         },
         "selected": false,
         "type": "genericNode"
       },
       {
         "data": {
-          "id": "TextOutput-DKrob",
+          "id": "TextOutput-lrT77",
           "node": {
             "base_classes": [
               "Message"
@@ -780,7 +780,7 @@
               }
             ],
             "pinned": false,
-            "score": 0.00005871300234274625,
+            "score": 0.003169567463043492,
             "template": {
               "_type": "Component",
               "code": {
@@ -833,30 +833,30 @@
           "type": "TextOutput"
         },
         "dragging": false,
-        "id": "TextOutput-DKrob",
+        "id": "TextOutput-lrT77",
         "measured": {
           "height": 229,
           "width": 320
         },
         "position": {
-          "x": 1187.1358340987858,
-          "y": 636.6947342664898
+          "x": 1094.6345600000004,
+          "y": 456.73280000000005
         },
         "selected": false,
         "type": "genericNode"
       }
     ],
     "viewport": {
-      "x": -68.3414575194106,
-      "y": -13.76503332609218,
-      "zoom": 0.651434684478624
+      "x": 6.420721816706873,
+      "y": -11.393755068937594,
+      "zoom": 0.633617193836172
     }
   },
-  "description": "",
+  "description": "Unfolding Linguistic Possibilities.",
   "endpoint_name": null,
-  "id": "67ea3993-b394-4115-a3a4-b51a329a7e28",
+  "id": "05043cdc-403e-4356-bf96-192e8b487f5b",
   "is_component": false,
   "last_tested_version": "1.4.2",
-  "name": "Report Generator",
+  "name": "Report Shortener",
   "tags": []
 }

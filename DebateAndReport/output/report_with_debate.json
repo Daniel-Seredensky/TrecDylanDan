@@ -1,0 +1,30 @@
+[
+    {
+        "text": "The article 'Nord Stream 2 Is Far From a Done Deal' by Maria Shagina, published in The Moscow Times, critiques the U.S.-German agreement on the Nord Stream 2 pipeline for lacking binding security and economic obligations for Ukraine.",
+        "citations": []
+    },
+    {
+        "text": "The U.S.-German Joint Statement on Support for Ukraine, European Energy Security, and our Climate Goals (July 2021) did not explicitly state that the agreement was contingent on Ukraine's consent, but it aimed to mitigate Ukraine's concerns.",
+        "citations": ["msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "Ukraine and Poland criticized the deal as insufficient and a threat, highlighting a perceived lack of binding commitments.",
+        "citations": ["msmarco_v2.1_doc_3.2"]
+    },
+    {
+        "text": "The joint statement emphasized the readiness of both the U.S. and Germany to impose new sanctions if Russia used energy as a weapon against Ukraine.",
+        "citations": ["msmarco_v2.1_doc_1.3", "msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "Germany committed to increasing the capacity for reverse flows of gas to Ukraine, but this commitment was described as non-binding by some analysts.",
+        "citations": ["msmarco_v2.1_doc_4.1", "msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "The U.S. and Germany stated their belief that continued gas transit via Ukraine beyond 2024 was in Ukraine's and Europe's interest, with Germany taking a lead role in facilitating this extension.",
+        "citations": ["msmarco_v2.1_doc_5.4", "msmarco_v2.1_doc_3.2"]
+    },
+    {
+        "text": "The agreement established a U.S.-Germany Climate and Energy Partnership, including a 'Green Fund for Ukraine' with financial pledges to support Ukraine's energy transition.",
+        "citations": ["msmarco_v2.1_doc_5.3", "msmarco_v2.1_doc_5.4", "msmarco_v2.1_doc_6.1"]
+    }
+]

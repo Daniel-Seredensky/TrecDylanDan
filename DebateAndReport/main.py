@@ -1,94 +1,136 @@
 import requests
 import json
-import report_generator as ReportGenerator
-import report_scorer as ReportScorer
-import report_shortener as ReportShortener
+import re
 
-url = "http://127.0.0.1:7860/api/v1/run/91b0b37f-1f48-4933-ad65-94950bc22ad5"  # The complete API endpoint URL for this flow
+# LangFlow API URLs
+debate_pipeline_url = "http://127.0.0.1:7860/api/v1/run/ff071340-7374-4b9b-b222-bb157ff5be7b"
+report_pipeline_url = "http://127.0.0.1:7860/api/v1/run/67ea3993-b394-4115-a3a4-b51a329a7e28"
+report_shortener_pipeline_url = "http://127.0.0.1:7860/api/v1/run/05043cdc-403e-4356-bf96-192e8b487f5b"
+report_scorer_pipeline_url = "http://127.0.0.1:7860/api/v1/run/3315485d-c0de-46fb-ac03-291563d1e6a1"
 
-def write_report(includeDebate, path):
-    if includeDebate:
-        file = open("debate_log.txt", "r")
-        debate_log_text = "Here is the debate on the credibility of the article. Insights from this debate should be your main reference point: " + file.read()
-        file = open(path, "w")
-        report_generator = ReportGenerator.ReportGenerator()
-        file.write(report_generator.generate_report(
-            article=article_text,
-            notes=notes_text,
-            additional=debate_log_text,
-        )
-    )
-    else:
-        file = open(path, "w")
-        report_generator = ReportGenerator.ReportGenerator()
-        file.write(report_generator.generate_report(
-            article=article_text,
-            notes=notes_text,
-            additional="",
-        )
-    )
-    return
-
-# Process article and notes inout
-
+# Filepaths
 ARTICLE_PATH = "input/article.txt"
 NOTES_PATH = "input/notes.txt"
 
-input_value = ""
-article_text = ""
-notes_text = ""
+DEBATE_LOG_PATH = "output/debate_log.txt"
+REPORT_SCORES_PATH = "output/report_scores.txt"
+REPORT_WITH_DEBATE_PATH = "output/report_with_debate.txt"
+REPORT_WITHOUT_DEBATE_PATH = "output/report_without_debate.txt"
 
-with open(ARTICLE_PATH, "r") as f:
-    article_text = f.read()
-    input_value += "ARTICLE:\n\n" + article_text
+def send_request(url, payload, headers):
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"Error making API request: {e}")
+    except ValueError as e:
+        print(f"Error parsing response: {e}")
 
-with open(NOTES_PATH, "r") as f:
-    notes_text = f.read()
-    input_value += "\n\nNOTES:\n\n" + notes_text
+def generate_debate():
+    article = open(ARTICLE_PATH, "r").read()
+    notes = open(NOTES_PATH, "r").read()
+
+    input_text = "Article: " + article + "\n\nNotes: " + notes
+
+    payload = {
+        "input_value": input_text,
+        "output_type": "text",
+        "input_type": "text"
+    }
+    headers = {"Content-Type": "application/json"}
+
+    send_request(debate_pipeline_url, payload, headers)
+
+def generate_report(use_debate):
+    article = open(ARTICLE_PATH, "r").read()
+    notes = open(NOTES_PATH, "r").read()
+    debate = open(DEBATE_LOG_PATH, "r").read()
+
+    input_text = "Article: " + article + "\n\nNotes: " + notes
+
+    if use_debate:
+        input_text += """\n\nHere is the debate on the credibility of the article.
+        Insights from this debate should be your main reference point: """ + debate
+
+    payload = {
+        "input_value": input_text,
+        "output_type": "text",
+        "input_type": "text"
+    }
+    headers = {"Content-Type": "application/json"}
+
+    report_text = json.loads(send_request(report_pipeline_url, payload, headers).text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"]
+    open(REPORT_WITH_DEBATE_PATH if use_debate else REPORT_WITHOUT_DEBATE_PATH, "w").write(report_text)
+
+def shorten_report(report_path):
+    report = open(report_path, "r").read()
+
+    input_text = report
+
+    payload = {
+        "input_value": input_text,
+        "output_type": "text",
+        "input_type": "text"
+    }
+    headers = {"Content-Type": "application/json"}
+
+    response = send_request(report_shortener_pipeline_url, payload, headers)
+    open(report_path, "w").write(json.loads(response.text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"])
+
+def score_reports(report_path_1, report_path_2):
+    report_1 = open(report_path_1, "r").read()
+    report_2 = open(report_path_2, "r").read()
+
+    input_text = "Report 1\n" + report_1 + "\n\nReport 2\n" + report_2
+
+    payload = {
+        "input_value": input_text,
+        "output_type": "text",
+        "input_type": "text"
+    }
+    headers = {"Content-Type": "application/json"}
+
+    response = send_request(report_scorer_pipeline_url, payload, headers)
+
+def clear_reports():
+    open(REPORT_WITH_DEBATE_PATH, "w").write("")
+    open(REPORT_WITHOUT_DEBATE_PATH, "w").write("")
+
+def get_word_count(responses):
+        wordCount = 0
+        for response in responses:
+            text = response["text"]
+            words = re.findall("\w+", text)
+            wordCount += len(words)
+        return wordCount
+
+def main():
+    generate_debate()
+    print("Debate Generated!")
+
+    clear_reports()
+
+    print("Generating report using debate...")
+    generate_report(True)
+
+    print("Generating report without debate...")
+    generate_report(False)
+
+    print("Shortening reports if needed...")
+
+    while get_word_count(json.loads(open(REPORT_WITH_DEBATE_PATH, "r").read())) > 250:
+        shorten_report(REPORT_WITH_DEBATE_PATH)
+
+    while get_word_count(json.loads(open(REPORT_WITHOUT_DEBATE_PATH, "r").read())) > 250:
+        shorten_report(REPORT_WITHOUT_DEBATE_PATH)
+
+    print("Scoring reports...")
+
+    score_reports(REPORT_WITH_DEBATE_PATH, REPORT_WITHOUT_DEBATE_PATH)
+
+    print("Finished!")
 
 
-
-# Request payload configuration
-payload = {
-    "input_value": input_value,  # The input value to be processed by the flow
-    "output_type": "text",  # Specifies the expected output format
-    "input_type": "text"  # Specifies the input format
-}
-
-# Request headers
-headers = {
-    "Content-Type": "application/json"
-}
-
-try:
-    # Send API request
-    response = requests.request("POST", url, json=payload, headers=headers)
-    response.raise_for_status()  # Raise exception for bad status codes
-
-    # Save response as .json
-    data = json.loads(response.text)
-    #file = open("response.json", "w")
-    #file.write(response.text)
-
-    # Final output text
-    # output = (data["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"])
-    # file = open("output.txt", "w")
-    # file.write(output)
-    
-    write_report(True, "report_with_debate.json")
-    write_report(False, "report_without_debate.json")
-
-    report_shortener = ReportShortener.ReportShortener()
-    while report_shortener.get_word_count(json.loads(open("report_with_debate.json", "r").read())) > 250:
-        report_shortener.shorten_report("report_with_debate.json")
-
-    report_scorer = ReportScorer.ReportScorer()
-    report_score = open("report_scores.txt", "w")
-    report1 = open("report_with_debate.json", "r").read()
-    report2 = open("report_without_debate.json", "r").read()
-    report_score.write(report_scorer.scoreReports(report1, report2, article_text))
-
-except requests.exceptions.RequestException as e:
-    print(f"Error making API request: {e}")
-except ValueError as e:
-    print(f"Error parsing response: {e}")
+if __name__ == "__main__":
+    main()
