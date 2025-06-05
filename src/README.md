@@ -39,13 +39,13 @@ The dataset for this project is very large, and our compute resources are limite
 
 src
 └── InfoRetrieval
-├── lib                 # Dependency JAR files
-├── BatchManager.py     # Push/pull to Azure AI Search Index
-├── QuestionEval.py     # Question Evaluation Agent implementation
-├── BinAgent.py         # (Deprecated) Document-based templates are in development
-├── Utils.py            # Utility functions
-├── JsonIndexer.java    # Converts raw JSON data into a Lucene index
-└── Search.java         # Performs initial parallel searches on the local index
+|   ├── lib                 # Dependency JAR files
+|  ├── BatchManager.py     # Push/pull to Azure AI Search Index
+|  ├── QuestionEval.py     # Question Evaluation Agent implementation
+|  ├── BinAgent.py         # (Deprecated) Document-based templates are in development
+|  ├── Utils.py            # Utility functions
+|  ├── JsonIndexer.java    # Converts raw JSON data into a Lucene index
+|  └── Search.java         # Performs initial parallel searches on the local index
 └── ContextBuilder.py       # Main driver for the information retrieval process
 
 ```
