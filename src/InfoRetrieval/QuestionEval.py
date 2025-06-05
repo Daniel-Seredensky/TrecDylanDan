@@ -286,7 +286,7 @@ class QuestionAssessmentAgent:
         # Offload to a thread to keep the event loop free
         def sync_invoke():
             try:
-                return LOCAL_FUNCTIONS[fn_name](**args)
+                return self.LOCAL_FUNCTIONS[fn_name](**args)
             except Exception as exc:
                 return {"error": str(exc)}
 
@@ -336,6 +336,9 @@ class QuestionAssessmentAgent:
     
     async def document_selection ():
         return "foo"
+    
+    def _cleanup_local_workspace(self):
+        os.remove(os.getenv("BM25_RESULTS_PATH") + self.agent_id + ".json")
 
 
 # ---------------------------------------------------------------------------
