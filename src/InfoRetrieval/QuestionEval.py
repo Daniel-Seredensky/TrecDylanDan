@@ -5,6 +5,8 @@ import time
 import re
 from typing import Dict, Any, List, Optional, Callable
 from uuid import uuid4
+
+from asyncinit import asyncinit
 import asyncio
 
 from src.InfoRetrieval.Utils import run_bm25_search
@@ -13,22 +15,7 @@ from BatchManager import BatchManager
 from openai import AsyncOpenAI
 
 # ---------------------------------------------------------------------------
-# Placeholder **local** tool implementations ‑ the LLM can call these names.
-# Replace the bodies with real logic or API calls in your environment.
-# ---------------------------------------------------------------------------
-
-def document_selection(*, documentIds: List[str], bestFragment: bool) -> Dict[str, str]:
-    """Mock selection function that echoes back fake fragments/full‑text."""
-    time.sleep(0.05)
-    return {
-        doc_id: (
-            f"Best fragment of {doc_id}" if bestFragment else f"Full text of {doc_id} …"
-        )
-        for doc_id in documentIds
-    }
-
-# ---------------------------------------------------------------------------
-# Enums & simple data containers
+# Enum to track the lifecycle of the agent's work on a single question.
 # ---------------------------------------------------------------------------
 class QAStatus(enum.Enum):
     """Lifecycle of the agent's work on a single question."""
@@ -37,14 +24,14 @@ class QAStatus(enum.Enum):
     HAS_ANSWER = "has_answer"  # Agent produced an initial answer, may iterate
     FINISHED = "finished"  # Agent signalled it is fully confident
 
-
+@asyncinit
 class QuestionAssessmentAgent:
     """High‑level wrapper around an Azure OpenAI Assistant that evaluates a Q&A task."""
 
     MAX_ITERATIONS: int = 15
     POLL_INTERVAL_SECONDS: float = 0.5  # local back‑off when polling manually
 
-    def __init__(
+    async def __init__(
         self,
         question: str,
         document: Dict[str, Any],
@@ -72,17 +59,17 @@ class QuestionAssessmentAgent:
             # create_assistant is now an async method
             # so we must await it in an async constructor or after __init__.
             # Here we store a coroutine and await it in run().
-            self._assistant_id_coro = self._create_assistant(model)
-            self.assistant_id: Optional[str] = None
+            # Note: updated to use the asyncinit decorator from asyncinit package
+            # now we can wait here for the results 
+            self._assistant_id = await self.create_assistant(model)
         else:
             self.assistant_id = assistant_id
-            self._assistant_id_coro = None
 
-        # We will create a thread once we have assistant_id
-        self.thread = None
+        # unique thread for each question
+        self.thread = await self.client.beta.threads.create()
 
         # Registry mapping tool‑names in the Assistant schema to Python callables
-        LOCAL_FUNCTIONS: Dict[str, Callable[..., Any]] = {
+        self.LOCAL_FUNCTIONS: Dict[str, Callable[..., Any]] = {
             "Search": self.Search,
             "document_selection": self.document_selection,
         }
@@ -91,7 +78,7 @@ class QuestionAssessmentAgent:
     # ----------------------------------------------------------------------
     # Assistant creation helpers
     # ----------------------------------------------------------------------
-    async def _create_assistant(self, model: str) -> str:
+    async def create_assistant(self, model: str) -> str:
         """Async creation of the Assistant with tool schema & system prompt."""
         system_prompt = self._build_system_prompt()
 
@@ -146,9 +133,9 @@ class QuestionAssessmentAgent:
                 },
             },
         ]
-
+        
         assistant = await self.client.beta.assistants.create(
-            name="Question-Assessment-Agent",
+            name="Question-Assessment-Agent" ,
             model=model,
             tools=tools,
             instructions=system_prompt,
@@ -190,12 +177,13 @@ class QuestionAssessmentAgent:
     # Public API – run the agent end‑to‑end on the current question
     # ------------------------------------------------------------------
     async def run(self) -> Dict[str, Any]:
+        # Now handled in async initialization
         # Step A: ensure assistant_id is ready
-        if self._assistant_id_coro is not None:
-            self.assistant_id = await self._assistant_id_coro
+        # if self._assistant_id_coro is not None:
+            #self.assistant_id = await self._assistant_id_coro
 
         # Step B: create a new thread to drive this assistant
-        self.thread = await self.client.beta.threads.create()
+        # Note: moved to async initialization
 
         # 1️⃣ Seed user question (async)
         await self.client.beta.threads.messages.create(
@@ -276,23 +264,14 @@ class QuestionAssessmentAgent:
         return {"status": self.status.value, "content": self.full_answer_status}
     
     # ────────────────────────────────────────────────────────────────────────────
-    # Dispatching a single tool call—but our tool is synchronous, so offload it
+    # Dispatching a single tool call
     # ────────────────────────────────────────────────────────────────────────────
     async def _dispatch_tool(self, call) -> Dict[str, Any]:
         """Invoke a blocking local function on a thread pool to avoid blocking the event loop."""
         fn_name = call.function.name  # type: ignore[attr-defined]
         args = json.loads(call.function.arguments or "{}")  # type: ignore[attr-defined]
-
-        # Offload to a thread to keep the event loop free
-        def sync_invoke():
-            try:
-                return self.LOCAL_FUNCTIONS[fn_name](**args)
-            except Exception as exc:
-                return {"error": str(exc)}
-
-        result = await asyncio.to_thread(sync_invoke)
-
         # OpenAI/Azure caps tool output at 5 kB
+        result = await self.LOCAL_FUNCTIONS[fn_name](**args)
         payload = json.dumps(result)[:5120]
         return {"tool_call_id": call.id, "output": payload}
     
@@ -329,7 +308,10 @@ class QuestionAssessmentAgent:
     # ------------------------------------------------------------------
     async def Search(self, kwargs: List[str], seed) -> None:
         path = os.getenv("BM25_RESULTS_PATH") + self.agent_id + ".json"
-        await asyncio.to_thread(run_bm25_search, self, kwargs, path)  # assume run_bm25_search is blocking
+
+        # Offload to a thread to avoid blocking the event loop
+        await asyncio.to_thread(run_bm25_search, self, kwargs, path)  
+
         bm = BatchManager()
         await bm.upload_to_azure(path)
         return await bm.search(kwargs,seed)
@@ -337,6 +319,7 @@ class QuestionAssessmentAgent:
     async def document_selection ():
         return "foo"
     
+    # Small util, removes scratch file
     def _cleanup_local_workspace(self):
         os.remove(os.getenv("BM25_RESULTS_PATH") + self.agent_id + ".json")
 
@@ -345,11 +328,10 @@ class QuestionAssessmentAgent:
 # Convenience procedural API
 # ---------------------------------------------------------------------------
 
-def assess_question(question: str, document: Dict[str, Any]) -> Dict[str, Any]:
+async def assess_question(question: str, document: Dict[str, Any]) -> Dict[str, Any]:
     """Simple functional entry point for callers outside the class world."""
-    agent = QuestionAssessmentAgent(question, document)
-    return agent.run()
-
+    agent = await QuestionAssessmentAgent(question, document)
+    return await agent.run()
 
 
 # Example usage for when I go to parallelize them in contextBuilder

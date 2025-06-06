@@ -158,3 +158,16 @@ java -cp "src/InfoRetrieval/lib/*:." src.InfoRetrieval.JsonIndexer
 java -cp "src/InfoRetrieval/lib/*:." src.InfoRetrieval.Search
 
 ```
+
+## Current Plan Renovations
+
+* create a custom synonym map for the search pipeline
+* modify the agent to generate 2-8 narrower queries, master query, and seed paragraph
+* modify the search pipeline to expande the 2-8 queries using custom synonym map
+* modify the search pipeline to initially dedupe results by collapsing the search based on document id, gives the best ranked segment per group
+* modify search pipeline to further dedupe (maybe group rrf)
+* cache already embedded vectors, the skip any candidate whose cosine similarity with an already‑kept vector is ≥ 0.95. The compare‑and‑skip adds ≤ 3 ms for 200 vectors.
+* create/modify document selection tool to either, get the full document text, or only the best segment by document id (max of 3 docs if segment, max of 1 if full doc)
+* Modify Azure AI Search resource to use the custom synonym map
+* finish making the Azure janitor index schema 
+* Revise the agent such that Azure assistant creation only needs to happen once (class method),from there each question gets its own assistants message thread (if thats how it works more research is needed)
