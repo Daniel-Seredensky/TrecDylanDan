@@ -1,0 +1,59 @@
+{
+  "groups": [
+    {
+      "theme": "U.S.-Germany agreement on Nord Stream 2",
+      "questions": [
+        "Verify the date and details of the U.S.-Germany agreement on Nord Stream 2 mentioned in the article.",
+        "Check the accuracy of the claim that the agreement lacks binding security and economic obligations for Ukraine.",
+        "Verify the claim that Germany has pledged to take action at the national level and press for effective measures at the European level, including sanctions.",
+        "Verify the article's claim about the extension of the gas-transit agreement beyond 2024 and Germany's role in facilitating it."
+      ]
+    },
+    {
+      "theme": "sanctions and security concerns",
+      "questions": [
+        "Assess whether the article accurately represents the U.S. and Germany's stated intentions regarding sanctions on Russia.",
+        "Identify any missing counterpoints or alternative perspectives on the effectiveness of sanctions as a deterrent against Russia.",
+        "Assess whether the article provides a balanced view of the potential effectiveness of sanctions as a deterrent against Russia.",
+        "Identify any omitted perspectives or counterarguments regarding the potential impact of Nord Stream 2 on European energy security.",
+        "Assess whether the article provides sufficient context about the geopolitical implications of Nord Stream 2 for U.S.-Russia and EU-Russia relations."
+      ]
+    },
+    {
+      "theme": "Ukraine's energy and security",
+      "questions": [
+        "Identify any missing details about the specific measures included in the U.S.-Germany agreement to support Ukraine's decarbonization.",
+        "Assess whether the article adequately addresses the potential long-term impacts of the U.S.-Germany agreement on Ukraine's energy security.",
+        "Identify any missing perspectives from Ukrainian officials or experts regarding the U.S.-Germany agreement and its impact on Ukraine.",
+        "Check for any omitted information about the potential economic impacts of Nord Stream 2 on Ukraine's gas-transit revenues."
+      ]
+    },
+    {
+      "theme": "historical and political context",
+      "questions": [
+        "Verify the historical context provided about the Siberian pipeline crisis in the 1980s and its relevance to current U.S.-Germany disagreements.",
+        "Check for any missing context about the historical background of the Siberian pipeline crisis mentioned in the article.",
+        "Identify any missing historical or political context that could affect the interpretation of the protest movements' current status.",
+        "Compare the article's description of Germany's Ostpolitik with other sources to ensure it accurately reflects current German foreign policy."
+      ]
+    },
+    {
+      "theme": "Russian and Belarusian protests",
+      "questions": [
+        "Verify the statistics from the Levada Center regarding Russian public opinion on protests in Khabarovsk and Belarus.",
+        "Compare the article's portrayal of Russian and Belarusian protest movements with other independent reports or analyses.",
+        "Assess the framing of the protest movements in Russia and Belarus as being suppressed by authoritarian regimes, and identify any omitted viewpoints.",
+        "Verify the claim that the Kremlin's tactic of waiting out the Khabarovsk protesters has proven effective.",
+        "Verify the claim that the Kremlin's response to the Khabarovsk protests was more cautious compared to other protests in Russia."
+      ]
+    },
+    {
+      "theme": "authors' credentials and biases",
+      "questions": [
+        "Verify the credentials and affiliations of the article's authors, Maria Shagina and Andrei Kolesnikov, to assess their expertise on the topics discussed.",
+        "Assess whether the article provides a balanced view of the U.S. and Germany's security perceptions regarding Nord Stream 2.",
+        "Identify any missing perspectives or voices from Russian or Belarusian authorities regarding the protest movements."
+      ]
+    }
+  ]
+}

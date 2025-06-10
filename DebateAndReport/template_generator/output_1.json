@@ -1,0 +1,140 @@
+
+{
+  "groups": [
+    {
+      "theme": "author's influence and framing",
+      "questions": [
+        "How does the author’s background or affiliation influence their framing of the Nord Stream 2 agreement and its implications for Ukraine?"
+      ]
+    },
+    {
+      "theme": "language and emotional impact",
+      "questions": [
+        "In what ways might the language used in the article evoke fear, outrage, or sympathy regarding the geopolitical tensions surrounding Nord Stream 2?",
+        "How does the article’s tone shape the reader’s emotional response to the potential sanctions against Russia?",
+        "How does the article’s tone shape the reader’s perception of the effectiveness of the U.S.-Germany agreement on Nord Stream 2?",
+        "In what ways might the language used in the article evoke concern or urgency about the Nord Stream 2 pipeline and its geopolitical consequences?"
+      ]
+    },
+    {
+      "theme": "reader assumptions and knowledge",
+      "questions": [
+        "What assumptions does the article make about the reader’s knowledge of the historical context between the U.S., Germany, and Russia?",
+        "What assumptions does the article make about the reader’s understanding of international energy politics and security issues?",
+        "What assumptions does the article make about the reader’s knowledge of the historical context between the U.S., Germany, and Russia regarding energy dependency?",
+        "How does the article address the historical context of energy dependency between the U.S., Germany, and Russia, and what might be the implications of this framing?"
+      ]
+    },
+    {
+      "theme": "persuasion vs information",
+      "questions": [
+        "To what extent is the article trying to persuade rather than inform about the effectiveness of the U.S.-Germany agreement on Nord Stream 2?",
+        "To what extent is the article trying to persuade the reader of a particular viewpoint regarding the Nord Stream 2 pipeline and its impact on Ukraine?",
+        "To what extent is the article trying to persuade the reader of the inadequacy of the U.S.-Germany agreement on Nord Stream 2?",
+        "How does the article’s portrayal of Ukraine’s position and concerns influence the reader’s perception of the country’s agency in the Nord Stream 2 negotiations?"
+      ]
+    },
+    {
+      "theme": "stakeholders and perspectives",
+      "questions": [
+        "What key perspectives or stakeholders are underrepresented or missing entirely in the discussion of the Nord Stream 2 agreement?",
+        "How does the article frame the role of Ukraine in the Nord Stream 2 negotiations, and what might this suggest about the author’s perspective?"
+      ]
+    },
+    {
+      "theme": "sanctions and security concerns",
+      "questions": [
+        "What might be the impact of the article’s focus on the potential for new sanctions on Russia’s energy sector?",
+        "Why could the article emphasize the potential for new sanctions against Russia, and who might benefit from this focus?",
+        "What might be the implications of the article’s focus on sanctions as a primary tool for addressing security concerns related to Nord Stream 2?",
+        "How does the article’s tone shape the reader’s perception of the effectiveness of sanctions as a tool for addressing security concerns?",
+        "Why could the article choose to highlight the role of sanctions as the primary instrument for addressing Ukraine’s security concerns?"
+      ]
+    },
+    {
+      "theme": "agreement mechanisms and trust",
+      "questions": [
+        "Why could the article emphasize the lack of concrete implementation mechanisms in the U.S.-Germany agreement?",
+        "What might be the impact of the article’s focus on the lack of concrete implementation mechanisms in the Nord Stream 2 agreement?",
+        "What might be the impact of the article’s focus on the lack of concrete implementation mechanisms in the U.S.-Germany agreement on the reader’s trust in international agreements?",
+        "What might be the implications of the article’s focus on the non-binding nature of Germany’s commitments to Ukraine?"
+      ]
+    },
+    {
+      "theme": "audience and ideological appeal",
+      "questions": [
+        "In what ways might the article’s presentation of the Nord Stream 2 issue be shaped to appeal to a specific audience or ideology?",
+        "In what ways might the article’s coverage of the Nord Stream 2 issue differ from other media outlets with varying political or ideological leanings?",
+        "How does the article’s portrayal of the U.S.-Germany agreement influence public perception of the involved countries’ foreign policies?"
+      ]
+    },
+    {
+      "theme": "structure and reader understanding",
+      "questions": [
+        "How does the article’s structure and placement of information influence the reader’s understanding of the Nord Stream 2 issue?",
+        "How does the article’s structure and organization affect the reader’s understanding of the complexities surrounding the Nord Stream 2 pipeline?",
+        "How does the article’s structure and placement of information affect the reader’s understanding of the complexities involved in the Nord Stream 2 negotiations?",
+        "In what ways might the article’s headline shape the reader’s expectations and interpretation of the content?"
+      ]
+    },
+    {
+      "theme": "geopolitical implications",
+      "questions": [
+        "To what extent does the article explore the broader geopolitical implications of the Nord Stream 2 agreement beyond the immediate stakeholders?",
+        "How does the article address the potential consequences of the Nord Stream 2 agreement for the European Union’s energy strategy?",
+        "How does the article explore the potential for future conflicts or cooperation between the U.S., Germany, and Russia regarding energy policy?",
+        "How does the article’s discussion of the U.S.-Germany agreement reflect broader geopolitical dynamics and power struggles?"
+      ]
+    },
+    {
+      "theme": "historical context and energy politics",
+      "questions": [
+        "What might be the implications of the article’s focus on the historical disagreements between the U.S. and Germany regarding energy dependency?",
+        "How does the article use historical references, such as the Siberian pipeline crisis, to support its arguments about current energy politics?",
+        "How does the article’s discussion of the Nord Stream 2 agreement reflect broader themes of international diplomacy and negotiation?"
+      ]
+    },
+    {
+      "theme": "economic and environmental concerns",
+      "questions": [
+        "How does the article balance the discussion of economic, security, and environmental concerns related to Nord Stream 2?",
+        "In what ways does the article explore or neglect the potential long-term consequences of the Nord Stream 2 agreement for European energy security?",
+        "How does the article address the potential for the Nord Stream 2 agreement to impact global energy markets and prices?"
+      ]
+    },
+    {
+      "theme": "Ukraine's role and skepticism",
+      "questions": [
+        "Why could the article choose to highlight the skepticism of Ukraine towards the U.S.-Germany agreement?",
+        "How does the article’s presentation of Ukraine’s skepticism towards the agreement shape the reader’s view of Ukraine’s agency in international politics?",
+        "What might be the implications of the article’s portrayal of the U.S. and Germany’s commitments to Ukraine’s decarbonization efforts?",
+        "How does the article address the potential long-term impacts of the Nord Stream 2 agreement on Ukraine’s energy security and economic stability?"
+      ]
+    },
+    {
+      "theme": "current events and future prospects",
+      "questions": [
+        "In what ways might the article’s discussion of the Nord Stream 2 agreement be influenced by current events or recent developments in international relations?",
+        "How does the article’s conclusion or lack thereof shape the reader’s overall impression of the Nord Stream 2 agreement and its future prospects?",
+        "What might be the effect of the article’s concluding remarks on the reader’s perception of the future of protest movements in authoritarian regimes?",
+        "In what ways might the article’s discussion of the protest movements in Russia and Belarus serve as a parallel to the Nord Stream 2 negotiations?"
+      ]
+    },
+    {
+      "theme": "emotional cues and rhetorical techniques",
+      "questions": [
+        "How does the article use emotional cues or rhetorical techniques to convey the urgency or importance of the Nord Stream 2 issue?",
+        "How does the use of emotionally charged words or metaphors in the article influence the reader’s interpretation of the Nord Stream 2 agreement?",
+        "What might be the reasons for the article’s focus on the potential for new sanctions against Russia, and who benefits from this narrative?",
+        "How does the article’s use of expert opinions, such as those of Maria Shagina and Andrei Kolesnikov, contribute to its overall argument?"
+      ]
+    },
+    {
+      "theme": "German politics and leadership",
+      "questions": [
+        "What might be the significance of the article’s emphasis on the potential challenges faced by the new German chancellor in continuing Merkel’s policies?",
+        "In what ways might the article’s discussion of Merkel’s departure influence the reader’s understanding of the future of German foreign policy?"
+      ]
+    }
+  ]
+}

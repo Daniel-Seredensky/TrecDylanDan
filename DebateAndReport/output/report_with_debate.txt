@@ -1,0 +1,34 @@
+[
+    {
+        "text": "Maria Shagina's article in The Moscow Times critiques the U.S.-German Nord Stream 2 agreement, focusing on Ukraine's security concerns.",
+        "citations": []
+    },
+    {
+        "text": "The U.S.-German statement aimed to address Ukraine's concerns without requiring its consent.",
+        "citations": ["msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "Ukraine and Poland criticized the deal for lacking binding security guarantees and economic obligations.",
+        "citations": ["msmarco_v2.1_doc_3.2"]
+    },
+    {
+        "text": "The statement included potential new sanctions if Russia used energy as a weapon or acted aggressively toward Ukraine.",
+        "citations": ["msmarco_v2.1_doc_1.3", "msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "Germany promised to enhance reverse gas flows to Ukraine, though the statement was seen as non-binding.",
+        "citations": ["msmarco_v2.1_doc_4.1", "msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "The U.S. and Germany supported continued gas transit via Ukraine beyond 2024, with Germany facilitating a possible 10-year extension.",
+        "citations": ["msmarco_v2.1_doc_5.4", "msmarco_v2.1_doc_3.2"]
+    },
+    {
+        "text": "The agreement formed a U.S.-Germany Climate and Energy Partnership, focusing on Ukraine's energy transition.",
+        "citations": ["msmarco_v2.1_doc_5.4"]
+    },
+    {
+        "text": "Germany committed to a 'Green Fund for Ukraine' with an initial $175 million and aimed for $1 billion in investments.",
+        "citations": ["msmarco_v2.1_doc_5.3", "msmarco_v2.1_doc_5.4", "msmarco_v2.1_doc_6.1"]
+    }
+]

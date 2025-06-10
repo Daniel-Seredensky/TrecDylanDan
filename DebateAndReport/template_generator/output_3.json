@@ -1,0 +1,69 @@
+
+{
+  "groups": [
+    {
+      "theme": "nord stream 2 context and implications",
+      "questions": [
+        "Summarize the historical context and significance of the Nord Stream 2 pipeline project.",
+        "Explain the geopolitical implications of the Nord Stream 2 pipeline for Ukraine, Russia, and the European Union.",
+        "Describe the security concerns Ukraine has regarding the Nord Stream 2 pipeline and how these concerns are addressed in the U.S.-Germany agreement.",
+        "Summarize the key points of the U.S.-Germany agreement on the Nord Stream 2 pipeline and its implications for Ukraine.",
+        "Describe the historical context of the Nord Stream 2 project and why it is considered controversial."
+      ]
+    },
+    {
+      "theme": "u.s.-germany energy relations",
+      "questions": [
+        "Outline the historical relationship between the U.S. and Germany concerning energy dependency and security, referencing the Siberian pipeline crisis of the 1980s.",
+        "Identify the historical disagreements between the U.S. and Germany regarding energy dependency and how these relate to the current Nord Stream 2 situation.",
+        "Discuss the potential impact of Angela Merkel's departure on the future of the Nord Stream 2 negotiations and sanctions policy.",
+        "Outline the role of sanctions in the U.S.-Germany agreement and their potential impact on Russia's energy sector.",
+        "Discuss the implications of the U.S. and Germany's failure to define 'Russia’s use of energy as a weapon' in their agreement."
+      ]
+    },
+    {
+      "theme": "germany's russia policy and stakeholders",
+      "questions": [
+        "Describe the concept of Ostpolitik and its influence on Germany's current Russia policy.",
+        "Explain the significance of the gas-transit agreement between Ukraine and Russia and its implications for European energy security.",
+        "Identify the main stakeholders involved in the Nord Stream 2 pipeline agreement and their respective positions."
+      ]
+    },
+    {
+      "theme": "ukraine's energy transition and security",
+      "questions": [
+        "Describe the role of the Climate and Energy Partnership in supporting Ukraine's decarbonization goals.",
+        "Outline the proposed measures for Ukraine's decarbonization and energy transition as part of the U.S.-Germany agreement.",
+        "Describe the potential challenges and opportunities for Ukraine in transitioning away from energy dependency on Russia.",
+        "Explain the significance of the Normandy format in the context of Ukraine's security concerns related to Nord Stream 2."
+      ]
+    },
+    {
+      "theme": "protest movements in russia and belarus",
+      "questions": [
+        "Explain the historical and political context of protest movements in Russia and Belarus, focusing on the events in Khabarovsk and Belarus.",
+        "Describe the impact of state-controlled media on public perception of protests in Russia and Belarus.",
+        "Outline the differences in public support for protests in Khabarovsk versus Belarus among the Russian population.",
+        "Explain the significance of Sergei Furgal's election and subsequent protests in Khabarovsk.",
+        "Compare the protest movements in Khabarovsk and Belarus in terms of their origins, goals, and government responses."
+      ]
+    },
+    {
+      "theme": "authoritarian regimes and opposition",
+      "questions": [
+        "Explain the concept of 'the new resilience of authoritarian regimes' as it applies to Russia and Belarus.",
+        "Describe the role of Alexei Navalny in the Russian protest movement and the government's response to his activities.",
+        "Explain the significance of Alexei Navalny's role in Russian opposition politics and the impact of his poisoning on protest movements.",
+        "Summarize the potential long-term effects of underground protest movements in authoritarian regimes."
+      ]
+    },
+    {
+      "theme": "nord stream 2's broader impacts",
+      "questions": [
+        "Outline the potential economic and political consequences of imposing new sanctions on Russia's energy sector.",
+        "Outline the potential long-term consequences of the Nord Stream 2 pipeline for European energy security and geopolitical dynamics.",
+        "Discuss the potential impact of the Nord Stream 2 pipeline on EU-Russia relations and intra-EU dynamics."
+      ]
+    }
+  ]
+}
