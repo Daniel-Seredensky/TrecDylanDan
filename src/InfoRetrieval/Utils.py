@@ -9,11 +9,7 @@ from openai import AsyncOpenAI
 from typing import List
 from pathlib import Path
 import asyncio
-import lucene
-from java.nio.file import Paths
-from org.apache.lucene.store import NIOFSDirectory
-from org.apache.lucene.index import DirectoryReader, Term
-from org.apache.lucene.search import IndexSearcher, TermQuery
+import json
 
 def run_bm25_search(self, queries: list[str], path: str) -> None:
         """
@@ -122,57 +118,62 @@ async def expand_queries(queries: List[str]) -> List[List[str]]:
     tasks = [_expand_query(query) for query in queries]
     return await asyncio.gather(*tasks)
 
-# fetch full document text from index
-async def get_document_text(doc_id: str, index_dir: str) -> str:
-    directory = NIOFSDirectory.open(Paths.get(str(Path(index_dir).resolve())))
-    reader = DirectoryReader.open(directory)
-    searcher = IndexSearcher(reader)
-    query = TermQuery(Term("id", doc_id))
-    top = searcher.search(query, 1)
-    if top.totalHits.value == 0:
-        reader.close()
-        directory.close()
-        raise KeyError(f"Document ID '{doc_id}' not found in {index_dir}")
-    doc = searcher.doc(top.scoreDocs[0].doc)
-    text = doc.get("content")
-    reader.close()
-    directory.close()
-    return text or ""
+def get_document_text(doc_id: str, jsonl_path: str)-> str:
+    path = Path(jsonl_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"Corpus file not found: {path}")
 
-# assemble documents for LLM
-async def document_selection(
-    document_ids: List[str],
-    bestFragment: bool,
-    *,
-    index_dir: str = "DerivedData/CluewebIndex",
-    fragment_char_limit: int = 1000,
-) -> str:
+    with path.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            # Skip empty/whitespace lines to avoid unnecessary json decode work
+            if not line.strip():
+                continue
+
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError:
+                # If a line is corrupted we just ignore it and keep scanning
+                continue
+
+            if obj.get("ClueWeb22-ID") == doc_id:
+                return obj.get("Clean-Text", "")
+
+    # ID does not exist
+    raise KeyError(f"Document ID '{doc_id}' not found in {path}")
+
+async def document_selection(document_ids: List[str], bestFragment: bool, *, jsonl_path: str, fragment_char_limit: int = 1000) -> str:
+    # Validate input
     if not document_ids:
         raise ValueError("document_ids must contain at least one ID")
     doc_ids = document_ids[:3]
 
-    # choose longest paragraph
-    def _fragment(txt: str) -> str:
-        parts = [p.strip() for p in txt.split("\n\n") if p.strip()]
-        if not parts:
-            return txt[:fragment_char_limit]
-        long_p = max(parts, key=len)
-        if len(long_p) <= fragment_char_limit:
-            return long_p
-        cut = long_p.rfind(" ", 0, fragment_char_limit)
-        return long_p[: cut if cut != -1 else fragment_char_limit] + "…"
+    # pick longest paragraph
+    def _extract_fragment(text: str) -> str:
+        paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+        if not paragraphs:
+            return text[:fragment_char_limit]
+        best = max(paragraphs, key=len)
+        if len(best) <= fragment_char_limit:
+            return best
+        cut = best.rfind(" ", 0, fragment_char_limit)
+        return best[: (cut if cut != -1 else fragment_char_limit)] + "…"
 
-    # concurrent reads
+    # Read docs concurrently
     loop = asyncio.get_running_loop()
     tasks = [
-        loop.run_in_executor(None, get_document_text, doc_id, index_dir)
+        loop.run_in_executor(None, get_document_text, doc_id, jsonl_path)
         for doc_id in doc_ids
     ]
-    texts = await asyncio.gather(*tasks)
+    raw_texts = await asyncio.gather(*tasks)
 
-    # optional trimming
-    texts = [_fragment(t) if bestFragment else t for t in texts]
+    # Shorten if fragment requested
+    processed_texts = [
+        _extract_fragment(txt) if bestFragment else txt for txt in raw_texts
+    ]
 
-    # markdown join
-    blocks = [f"### {did}\n{txt}" for did, txt in zip(doc_ids, texts)]
+    # Build output
+    blocks = [
+        f"### {doc_id}\n{doc_text}"
+        for doc_id, doc_text in zip(doc_ids, processed_texts)
+    ]
     return "\n\n".join(blocks)
