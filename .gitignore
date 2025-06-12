@@ -1,17 +1,16 @@
 clueweb
-.DS_Store
-*/.DS_Store
-*/*/.DS_Store
-*/*/*/.DS_Store
+*.DS_Store
+*__pycache__
+*.env
+
 .conda
-.*
+*.class
 DerivedData/CluewebIndex/*
 DerivedData/SearchResults/*
 DerivedData/BinAgent/*
-DerivedData/ContextBuilder/CurrentContext.txt
-
-*.class
-*/*.class
+DerivedData/ContextBuilder/*
+DerivedData/MSMarcoIndex
+SampleMarco
 
 # Keep empty directories
 !DerivedData/CluewebIndex/.gitkeep

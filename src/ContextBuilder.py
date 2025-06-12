@@ -8,7 +8,7 @@ from dotenv import load_dotenv; load_dotenv()
 
 from src.InfoRetrieval.BinAgent import bin_document
 from src.InfoRetrieval.QuestionEval import assess_question
-from src.InfoRetrieval.Utils import reset_index
+from QA_Assistant.Utils import reset_index
 
 @asyncinit
 class Proctor:
