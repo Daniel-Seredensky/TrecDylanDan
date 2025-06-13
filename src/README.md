@@ -4,32 +4,67 @@ The core of any RAG (Retrieval-Augmented Generation) system is its information r
 
 ## Overview
 
-The dataset for this project is very large, and our compute resources are limited. Embedding the entire dataset in a vector database is not feasible. To overcome this, we use a hybrid approach:
+The MARCO V2.1 segmented dataset is very large, and our compute resources are limited. Embedding the entire dataset in a vector store isn’t feasible, so we’ve designed a hybrid retrieval pipeline that balances **recall** (finding as many relevant passages as possible) with **cost** and **latency** (minimizing expensive model calls).
 
-1. **Query Generation**  
-   For each question, an LLM generates:
-   - A list of 6–12 BM25-optimized queries  
-   - A seed paragraph for semantic search
+1. **Query Generation**
 
-2. **BM25 Search & Reranking**  
-   - Run the 6–12 queries in parallel against a local Lucene index  
-   - Rerank all results using RRF (Ranked Relevance Feedback)  
-   - Select the top 200 reranked documents
+   * **What happens:** An LLM produces 2–4 BM25‑optimized queries plus a separate “master” query.
+   * **Why:** Multiple, targeted BM25 queries boost recall by covering different phrasings; the master query serves as the anchor for later refinement.
 
-3. **Embedding & Azure Indexing**  
-   - Embed the top 200 documents  
-   - Upload the embeddings to an Azure AI Search index
+2. **Synonym Expansion & BM25 Search**
 
-4. **Hybrid Search**  
-   - Search the Azure index using the original BM25 queries and the seed paragraph  
-   - Retrieve the top 75 document metadata
+   * **What happens:**
 
-5. **LLM Context & Document Selection**  
-   - Pass the top 75 metadata records to the LLM as context  
-   - The LLM chooses the most relevant documents to read in full
+     1. Each BM25 query is expanded via a synonym map to capture lexical variants.
+     2. All expanded queries run **in parallel** against a local Lucene index.
+     3. **Results are collapsed on `document_id`** to remove duplicate segments produced by the dataset’s sliding‑window segmentation.
+     4. We fuse the collapsed results using Reciprocal Rank Fusion (RRF).
+   * **Why:**
 
-6. **Autonomous Question Evaluation**  
-   - Using the Azure Assistants API, the LLM iteratively answers the question with minimal oversight, leveraging the retrieved documents.
+     * **Cost:** Local BM25 searches and synonym expansion are very cheap.
+     * **Recall:** Collapsing on `document_id` prevents over‑weighting duplicated segments, while RRF fusion amalgamates signals across queries.
+
+3. **Pseudo‑Relevance Feedback (PRF)**
+
+   * **What happens:** We take the top 10–20 terms from the RRF output and append them to the master query.
+   * **Why:**
+
+     * **Recall:** PRF enriches the master query with dataset‑specific vocabulary identified as likely relevant.
+     * **Cost:** Extracting terms and expanding the master query is low‑overhead.
+
+4. **Cohere Cross‑Encoder Reranking**
+
+   * **What happens:**
+
+     1. We send the PRF‑augmented master query along with the **top 600** RRF results to the Cohere Cross‑Encoder (CE).
+     2. The CE reranks and returns **the top 75** document metadata.
+   * **Why:**
+
+     * **Recall vs. Cost Trade‑off:**
+
+       * Using 600 candidates maximizes recall by giving the CE a wide pool to reorder.
+       * Restricting to 600 (instead of, say, 1,000+) keeps CE costs and latency within reasonable bounds.
+     * **Simplicity:** A single CE call is straightforward to implement and monitor.
+
+5. **LLM Context & Document Selection**
+
+   * **What happens:** The top 75 metadata records (title, URL, headers, snippet IDs) are provided to the LLM. It then selects which documents (or segments) to read in full.
+   * **Why:**
+
+     * **Cost Efficiency:** Passing only 75 candidates to the LLM keeps context lengths manageable and API usage low.
+     * **Precision:** The final selection ensures the LLM works with the most promising documents.
+
+6. **Autonomous Question Evaluation**
+
+   * **What happens:** Through the Azure Assistants API, the LLM iteratively composes an answer to the original question, drawing on the selected full‑text documents with minimal human oversight.
+   * **Why:**
+
+     * **Scalability:** Automates the Q\&A loop so the system can handle many queries in parallel.
+     * **Quality:** The structured retrieval steps feed high‑quality evidence into the answer process.
+
+---
+
+By collapsing on `document_id`, using cheap local BM25 + RRF for broad coverage, applying low‑cost PRF for targeted refinement, and then investing in a single, bounded CE call (600 → 75), this pipeline maximizes recall while keeping model‑inference costs and overall latency under control.
 
 ## File Structure
 
@@ -49,7 +84,7 @@ src
 └── ContextBuilder.py       # Main driver for the information retrieval process
 
 ```
-
+ 
 ## More Details
 
 ### BatchManager
@@ -146,7 +181,7 @@ flowchart TD
 
 ``` bash
 
-javac -cp "src/InfoRetrieval/lib/*:." src/InfoRetrieval/*.java
+javac -cp "src/InfoRetrieval/Search/lib/*:." src/InfoRetrieval/Search/*.java
 
 ```
 
@@ -154,8 +189,8 @@ javac -cp "src/InfoRetrieval/lib/*:." src/InfoRetrieval/*.java
 
 ``` bash
 
-java -cp "src/InfoRetrieval/lib/*:." src.InfoRetrieval.JsonIndexer
-java -cp "src/InfoRetrieval/lib/*:." src.InfoRetrieval.Search
+java -cp "src/InfoRetrieval/Search/lib/*:." src.InfoRetrieval.Search.JsonIndexer
+java -cp "src/InfoRetrieval/Search/lib/*:." src.InfoRetrieval.Search.Searcher
 
 ```
 
@@ -171,3 +206,4 @@ java -cp "src/InfoRetrieval/lib/*:." src.InfoRetrieval.Search
 * Modify Azure AI Search resource to use the custom synonym map
 * finish making the Azure janitor index schema 
 * Revise the agent such that Azure assistant creation only needs to happen once (class method),from there each question gets its own assistants message thread (if thats how it works more research is needed)
+
