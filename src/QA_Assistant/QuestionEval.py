@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from asyncinit import asyncinit
 import asyncio
+import aiofiles
 
 from InfoRetrieval.Search.Searcher import search
 from InfoRetrieval.Utils import document_selection
@@ -54,8 +55,9 @@ class QuestionAssessmentAgent :
 
         # Assistant ID now comes from Assistant.py’s cache
         if assistant_id is None:
-            with open(ASSISTANT_ID_FILE) as f:
-                assistant_id = f.read().strip()
+            async with aiofiles.open(ASSISTANT_ID_FILE) as f:
+                assistant_id = await f.read()
+                asisstant_id = assistant_id.strip()
         self.assistant_id = assistant_id
 
         if self.assistant_id is not None: raise ValueError("Assistant ID not found, create one first")

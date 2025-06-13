@@ -8,14 +8,15 @@ Creates (or re‑uses) a single OpenAI Assistant and stores its ID.
 """
 import os
 import asyncio
-from pathlib import Path
+import aiofiles
 from openai import AsyncOpenAI
-
+from pathlib import Path
 
 # ────────────────────────────────
 # Config
 # ────────────────────────────────
-ASSISTANT_ID_FILE = Path("DerivedData/Assistant/AssistantId.txt")
+ASSISTANT_ID_FILE = "DerivedData/Assistant/AssistantId.txt"
+
 MODEL            = os.getenv("AZURE_MODEL_KEY", "gpt-4o-mini")
 
 # ────────────────────────────────
@@ -140,26 +141,24 @@ THINKING SCAFFOLD (use mentally; do not output)
 5. Draft answer; verify each claim; tighten language.  
 6. If anything is uncertain, loop back; otherwise mark `"finished": true`.
 
---- End of system prompt ---
-
 """
 
 
 
 async def _get_or_create_assistant(client: AsyncOpenAI) -> str:
     """Return an existing assistant ID if cached, otherwise create and cache it."""
-    if ASSISTANT_ID_FILE.exists():
-        return ASSISTANT_ID_FILE.read_text().strip()
+    if Path(ASSISTANT_ID_FILE).exists():
+        return Path(ASSISTANT_ID_FILE).read_text().strip()
 
     assistant = await client.beta.assistants.create(
-        name="IR‑QA Assistant",
+        name="IR‑QA-Assistant",
         model=MODEL,
         tools=TOOLS,
         instructions=SYSTEM_PROMPT,
     )
 
-    ASSISTANT_ID_FILE.parent.mkdir(parents=True, exist_ok=True)
-    ASSISTANT_ID_FILE.write_text(assistant.id)
+    async with aiofiles.open(ASSISTANT_ID_FILE, "w") as f:
+        await f.write(assistant.id)
     return assistant.id
 
 
@@ -173,5 +172,7 @@ if __name__ == "__main__":  # pragma: no cover
         )
         assistant_id = await _get_or_create_assistant(client)
         print(f"Assistant ready → {assistant_id}")
+        client.close()
 
     asyncio.run(_main())
+    
