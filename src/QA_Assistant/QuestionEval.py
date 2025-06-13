@@ -1,207 +1,116 @@
 import os
 import json
-import enum
-import time
+from enum import Enum
 import re
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, Optional, Callable
 from uuid import uuid4
 
 from asyncinit import asyncinit
 import asyncio
 
 from InfoRetrieval.Search.Searcher import search
+from InfoRetrieval.Utils import document_selection
 
 from openai import AsyncOpenAI
 
 # ---------------------------------------------------------------------------
 # Enum to track the lifecycle of the agent's work on a single question.
 # ---------------------------------------------------------------------------
-class QAStatus(enum.Enum):
-    """Lifecycle of the agent's work on a single question."""
+ASSISTANT_ID_FILE = "DerivedData/Assistant/AssistantId.txt"
 
-    NO_ANSWER = "no_answer"  # Agent has not produced any answer yet
-    HAS_ANSWER = "has_answer"  # Agent produced an initial answer, may iterate
-    FINISHED = "finished"  # Agent signalled it is fully confident
+class QAStatus(Enum):
+    NO_ANSWER = "no_answer"
+    HAS_ANSWER = "has_answer"
+    FINISHED = "finished"
 
 @asyncinit
-class QuestionAssessmentAgent:
-    """High‑level wrapper around an Azure OpenAI Assistant that evaluates a Q&A task."""
-
+class QuestionAssessmentAgent :
     MAX_ITERATIONS: int = 15
-    POLL_INTERVAL_SECONDS: float = 0.5  # local back‑off when polling manually
+    POLL_INTERVAL_SECONDS: float = 0.5
 
     async def __init__(
         self,
         question: str,
         document: Dict[str, Any],
-        *,
         client: Optional[AsyncOpenAI] = None,
         assistant_id: Optional[str] = None,
-        model: str = os.getenv("AZURE_MODEL_KEY", "gpt-4o-mini"),
     ):
         self.question = question
         self.document = document
         self.status = QAStatus.NO_ANSWER
         self.full_answer_status: Optional[str] = None
         self.agent_id = uuid4()
+        self.results_path = os.getenv("BM25_RESULTS_PATH") + f"/{self.agent_id}"
+        os.mkdir(self.results_path)
 
-        # ─── Async client setup ────────────────────────────────────
+        # ─── Async client setup ────────────────────────────────────────
         if client is None:
             client = AsyncOpenAI(
                 azure_endpoint=os.getenv("OPENAI_ENDPOINT"),
                 api_key=os.getenv("OPENAI_API_KEY"),
                 api_version="2024-02-15-preview",
             )
-        self.client: AsyncOpenAI = client
+        self.client = client
 
+        # Assistant ID now comes from Assistant.py’s cache
         if assistant_id is None:
-            # create_assistant is now an async method
-            # so we must await it in an async constructor or after __init__.
-            # Here we store a coroutine and await it in run().
-            # Note: updated to use the asyncinit decorator from asyncinit package
-            # now we can wait here for the results 
-            self._assistant_id = await self.create_assistant(model)
-        else:
-            self.assistant_id = assistant_id
+            with open(ASSISTANT_ID_FILE) as f:
+                assistant_id = f.read().strip()
+        self.assistant_id = assistant_id
 
-        # unique thread for each question
+        if self.assistant_id is not None: raise ValueError("Assistant ID not found, create one first")
+
+        # One thread per question
         self.thread = await self.client.beta.threads.create()
 
-        # Registry mapping tool‑names in the Assistant schema to Python callables
         self.LOCAL_FUNCTIONS: Dict[str, Callable[..., Any]] = {
             "search": search,
             "document_selection": document_selection,
         }
 
-
-    # ----------------------------------------------------------------------
-    # Assistant creation helpers
-    # ----------------------------------------------------------------------
-    async def create_assistant(self, model: str) -> str:
-        """Async creation of the Assistant with tool schema & system prompt."""
-        system_prompt = self._build_system_prompt()
-
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "search",
-                    "description": (
-                        "Execute a hybrid information retrieval pipeline optimized for recall and cost-efficiency on the MARCO V2.1 segmented dataset. "
-                        "This pipeline retrieves up to 75 document metadata tuples by combining lexical BM25 search, semantic cross-encoder reranking, and pseudo-relevance feedback. "
-                        "The tool requires two types of queries: BM25-optimized queries (to enhance recall by capturing varied phrasings and synonyms) and a master query (a concise, semantically rich paragraph to guide the reranker). "
-                        "Generate 2–4 diverse and targeted BM25 queries to broadly cover relevant terminology and alternative phrasing. The master query should succinctly capture the semantic essence of the information needed."
-                    ),
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "BMQueries": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "description": "List of 2–4 distinct keyword-rich BM25 queries, each optimized for lexical search coverage."
-                            },
-                            "MasterQuery": {
-                                "type": "string",
-                                "description": "A concise paragraph or detailed sentence serving as the semantic seed for pseudo-relevance feedback and cross-encoder reranking."
-                            }
-                        },
-                        "required": ["BMQueries", "MasterQuery"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "document_selection",
-                    "description": (
-                        "Select up to 3 documents by ID; request best fragment or full text."
-                    ),
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "documentIds": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "description": "List of document IDs (max 5).",
-                            },
-                            "bestFragment": {
-                                "type": "boolean",
-                                "description": "true for best fragment; false for full text.",
-                            },
-                        },
-                        "required": ["documentIds", "bestFragment"],
-                    }
-                }
-            }
-        ]
-        
-        assistant = await self.client.beta.assistants.create(
-            name="Question-Assessment-Agent" ,
-            model=model,
-            tools=tools,
-            instructions=system_prompt,
-        )
-        return assistant.id
-
-    def _build_system_prompt(self) -> str:
-        """Return the system prompt injected when the Assistant is created."""
-        doc_text = json.dumps(self.document, ensure_ascii=False)
-        prompt = (
-            "You are a **Question Assessment AI Agent** specialised in information "
-            "retrieval, fact‑checking, and rapid synthesis.\n\n"
-            "You will be given: \n"
-            "• A document (JSON) — provided inline below.\n"
-            "• A question to answer.\n\n"
-            f"DOCUMENT: {doc_text}\n"
-            f"QUESTION: {self.question}\n\n"
-            "You have access to two tools (call them exactly as specified):\n"
-            "1. **Search**(KWQueries: array[str], seed: str) -> list[75] "
-            "returns document metadata (url, title, headers, documentId).\n"
-            "2. **document_selection**(documentIds: array[str], bestFragment: bool) "
-            "-> object mapping each documentId to content (best fragment or full text).\n\n"
-            "# Working style\n"
-            "• First, *use tools* to collect evidence.\n"
-            "• Strive to craft an initial answer quickly.\n"
-            "• Always respond in the following wrappers: \n"
-            "    <notepad>your running thoughts</notepad>\n"
-            "    Then either: \n"
-            "      <noAnswer></noAnswer> (if no answer yet) OR \n"
-            "      <answer>{\"question\": ..., \"answer\": ..., \"citations\": [...], \"finished\": false}</answer>\n"
-            "• After an initial answer, iteratively improve it until confident, then set "
-            "  `finished` to true.\n"
-            "• Cite ONLY documentIds (string IDs) in the `citations` array.\n"
-            "• Stop when confident or after 15 internal steps, whichever is first.\n"
-        )
-        return prompt
-
     # ------------------------------------------------------------------
     # Public API – run the agent end‑to‑end on the current question
     # ------------------------------------------------------------------
     async def run(self) -> Dict[str, Any]:
-        # Now handled in async initialization
-        # Step A: ensure assistant_id is ready
-        # if self._assistant_id_coro is not None:
-            #self.assistant_id = await self._assistant_id_coro
+        # Seed user question 
+        seed = "Reference document" + \
+                f"{self.document}" + \
+                "The question you must answer" + \
+                f"{self.question}" + \
+                """
+                ────────────────────────────────────────
+                What you must do **right now**
+                ────────────────────────────────────────
 
-        # Step B: create a new thread to drive this assistant
-        # Note: moved to async initialization
+                1. Restate, in one precise sentence, the information this question seeks.
+                2. Draft **2–4 keyword‑rich BM25 queries** covering synonyms and alternate wording.
+                3. Draft **one MasterQuery** (≤ 70 words) that captures the semantic essence.
+                4. Place your chain‑of‑thought & retrieval plan inside **<notepad>…</notepad>**.
+                5. Follow immediately with **<noAnswer></noAnswer>** so the orchestrator can
+                dispatch the `search` tool.
 
-        # 1️⃣ Seed user question (async)
+                *Do **not** call `document_selection` yet; wait until you have inspected the
+                `search` results.*
+                """
+
         await self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
             role="user",
-            content=f"Please evaluate the question: {self.question}",
+            content=seed,
         )
 
-        # 2️⃣ Kick-off the assistant run (async)
+        # Kick‑off the assistant run (async)
         run = await self.client.beta.threads.runs.create(
             thread_id=self.thread.id,
             assistant_id=self.assistant_id,
         )
 
-        # 3️⃣ Manual polling loop with tool dispatch (async)
+        # All non‑recoverable terminal states
+        _ABORT_STATES = {"failed", "cancelled", "expired", "incomplete"}
+
+        # Manual polling loop with tool dispatch (async)
         for _ in range(self.MAX_ITERATIONS):
-            # 3a) Poll until run.status moves out of "queued"/"in_progress"
+            # Poll until run.status moves out of "queued"/"in_progress"
             while True:
                 run = await self.client.beta.threads.runs.retrieve(
                     thread_id=self.thread.id, run_id=run.id
@@ -211,18 +120,32 @@ class QuestionAssessmentAgent:
                     continue
                 break
 
-            if run.status == "completed":
+            # always capture the latest assistant message
+            try:
                 msg = await self._latest_assistant_message()
                 self._update_status(msg)
+            except IndexError:
+                # No assistant messages yet (e.g., first tool call)
+                pass
+
+            # Handle run status
+            if run.status == "completed":
                 return {"status": self.status.value, "content": self.full_answer_status}
 
+            if run.status in _ABORT_STATES:
+                # Gracefully return whatever partial answer we have
+                return {
+                    "status": self.status.value,          # NO_ANSWER or HAS_ANSWER
+                    "content": self.full_answer_status,   # may be ""
+                    "run_state": run.status,
+                }
+
             if run.status != "requires_action":
+                # Unexpected state (shouldn’t happen, but keep original safeguard)
                 raise RuntimeError(f"Run ended in unexpected state: {run.status}")
 
-            # 3b) Dispatch tools in parallel (use asyncio.to_thread for blocking tools)
+            # Dispatch tools in parallel
             calls = run.required_action.submit_tool_outputs.tool_calls  # type: ignore[attr-defined]
-
-            # We can fire each tool call non-blocking:
             tool_outputs = await asyncio.gather(
                 *[self._dispatch_tool(call) for call in calls]
             )
@@ -231,25 +154,37 @@ class QuestionAssessmentAgent:
                 thread_id=self.thread.id, run_id=run.id, tool_outputs=tool_outputs
             )
 
-            # 3c) Update status after each assistant message
+            # Update status after the assistant incorporates tool results
             msg = await self._latest_assistant_message()
             self._update_status(msg)
 
-        # 4️⃣ Fallback if we never got a “completed” status in MAX_ITERATIONS
+        # Fallback: max iterations reached
         await self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
             role="user",
-            content=(
-                "Max iterations reached without a definitive answer. "
-                "Compose *one* response using the required format:\n"
-                "<notepad>brief reflection</notepad>\n"
-                f"<answer>{{\"question\": \"{self.question}\", "
-                "\"answer\": \"State which info you sought and why it was insufficient.\", "
-                "\"citations\": [], \"finished\": false}}</answer>"
-            ),
+            content= \
+                """
+                Max iterations or an unexpected error stopped the run.
+
+                Compose **one final assistant message** and then **stop**.
+
+                <notepad>
+                • Briefly (1–3 bullets) explain what you tried and why it was insufficient.  
+                • Note what additional evidence or queries would likely resolve the question.
+                </notepad>
+
+                <answer>{
+                """ + \
+                f"\"question\": \"{self.question}\"," + \
+                """
+                "answer": "Summarise what you know so far and state clearly why you are not yet fully confident.",
+                "citations": [],
+                "finished": false
+                }</answer>
+                """
         )
 
-        # Create a short follow-up run with fewer steps
+        # Short follow‑up run (3 rounds max)
         run = await self.client.beta.threads.runs.create_and_poll(
             thread_id=self.thread.id,
             assistant_id=self.assistant_id,
@@ -261,9 +196,9 @@ class QuestionAssessmentAgent:
             self._update_status(msg)
             return {"status": self.status.value, "content": self.full_answer_status}
 
-        # If fallback still fails, return whatever you last saw
+        # Final graceful exit if still not completed
         return {"status": self.status.value, "content": self.full_answer_status}
-    
+
     # ────────────────────────────────────────────────────────────────────────────
     # Dispatching a single tool call
     # ────────────────────────────────────────────────────────────────────────────
@@ -302,8 +237,9 @@ class QuestionAssessmentAgent:
             self.status = QAStatus.NO_ANSWER
     
     # Small util, removes scratch file
-    def _cleanup_local_workspace(self):
-        os.remove(os.getenv("BM25_RESULTS_PATH") + self.agent_id + ".json")
+    async def close (self):
+        os.rmdir(self.results_path)
+        await self.client.close()
 
 
 # ---------------------------------------------------------------------------
@@ -313,17 +249,6 @@ class QuestionAssessmentAgent:
 async def assess_question(question: str, document: Dict[str, Any]) -> Dict[str, Any]:
     """Simple functional entry point for callers outside the class world."""
     agent = await QuestionAssessmentAgent(question, document)
-    return await agent.run()
-
-# Example usage for when I go to parallelize them in contextBuilder
-async def example():
-    tasks = []
-    # Suppose you have a list of (question, document) pairs:
-    for question, document in $your_question_document_list:
-        tasks.append(assess_question(question, document))
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    for r in results:
-        if isinstance(r, Exception):
-            print("Agent failed:", r)
-        else:
-            print("Agent result:", r)
+    res = await agent.run()
+    await agent.close()
+    return res

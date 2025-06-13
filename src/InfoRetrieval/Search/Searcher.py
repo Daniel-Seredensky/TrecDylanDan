@@ -3,14 +3,13 @@ Search module for the Information Retrieval project.
 """
 
 from typing import List
-import subprocess 
 import asyncio
 from dotenv import load_dotenv; load_dotenv()
 import os
-import cohere
 import aiofiles
 import httpx
 import json
+from  pathlib import Path
 
 async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
@@ -18,42 +17,35 @@ async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
     results = os.getenv("BM25_RESULTS_PATH")
     path = f"{results}/{agentId}/results.jsonl"  
-    await asyncio.to_thread(run_bm25_search, queries, path)
+    await run_bm25_search(queries, path)
     return await rerank_jsonl(path, master_query)
 
-def run_bm25_search(queries: list[str], path: str) -> None:
-        """
-        Helper method to run the Java BM25 search with subprocess
-        
-        Args:
-            queries: List of query strings to search for
-        """
-        try:
-            # Prepare the command
-            java_cmd = [
-                "java", 
-                "-cp", "src/InfoRetrieval/Search/lib/*:.",  # Adjust classpath as needed
-                "src.InfoRetrieval.Search.Searcher"
-            ] + queries + [path]
-            print(java_cmd)
-            
-            # Run the Java search
-            result = subprocess.run(
-                java_cmd,
-                capture_output=False,
-                text=True,
-                timeout=300  # 5 minute timeout
-            )
-            
-            if result.returncode != 0:
-                raise RuntimeError(f"Java search failed: {result.stderr}")
-                
-            print("Proctor: BM25 search completed successfully")
-            
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("BM25 search timed out after 5 minutes")
-        except Exception as e:
-            raise RuntimeError(f"Failed to execute BM25 search: {e}")
+JAVA_CLASSPATH = "src/InfoRetrieval/Search/lib/*:."
+
+async def run_bm25_search(queries: list[str], path: Path) -> None:
+    cmd = [
+        "java",
+        "-cp", JAVA_CLASSPATH,
+        "src.InfoRetrieval.Search.Searcher",
+        *queries,
+        str(path)
+    ]
+
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.DEVNULL,   # capture if you need it; else use None|DEVNULL
+        stderr=asyncio.subprocess.DEVNULL
+    )
+
+    try:
+        await asyncio.wait_for(proc.communicate(), timeout=300)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.wait()
+        raise RuntimeError("BM25 search timed out after 5 minutes")
+
+    if proc.returncode:
+        raise RuntimeError(f"Java search failed [{proc.returncode}]: ")
 
 async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
     """
@@ -125,7 +117,7 @@ async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
 
 
 async def main ():
-    queries = ["loving words from the bible","heart felt messages bible"]
+    queries = ["loving words from the bible", "heart felt messages bible"]
     master = "Looking for loving words from the bible, positive messages that relate to love"
     id = "test"
     print(await search(queries, master, id))

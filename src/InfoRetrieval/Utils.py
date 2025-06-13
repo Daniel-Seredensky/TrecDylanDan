@@ -3,9 +3,6 @@
     Some are wrappers for curl scripts, some are wrappers for OpenAI calls
 """
 
-import subprocess
-import os
-from openai import AsyncOpenAI
 from typing import List
 from pathlib import Path
 import asyncio

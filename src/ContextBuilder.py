@@ -3,12 +3,11 @@ import os
 import asyncio 
 from asyncinit import asyncinit
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 from dotenv import load_dotenv; load_dotenv()
 
-from src.InfoRetrieval.BinAgent import bin_document
 from src.InfoRetrieval.QuestionEval import assess_question
-from QA_Assistant.Utils import reset_index
+
 
 @asyncinit
 class Proctor:
@@ -23,7 +22,7 @@ class Proctor:
     
     async def __init__(self, docId: str) -> None:
         self.document = docId
-        client = OpenAI(api_key=os.getenv("API_KEY"))
+        client = await AsyncOpenAI(api_key=os.getenv("API_KEY"))
         # bin document and retrieve corresponding template
         # template generation will likely be async
         await bin_document(client, docId)
