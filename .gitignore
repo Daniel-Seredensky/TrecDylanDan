@@ -10,7 +10,8 @@ DerivedData/SearchResults/*
 DerivedData/BinAgent/*
 DerivedData/ContextBuilder/*
 DerivedData/MSMarcoIndex
-SampleMarco
+MarcoIndex/*
+!MarcoIndex/.gitkeep
 
 # Keep empty directories
 !DerivedData/CluewebIndex/.gitkeep
