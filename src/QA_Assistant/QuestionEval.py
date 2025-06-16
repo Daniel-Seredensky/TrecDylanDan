@@ -25,7 +25,7 @@ class QAStatus(Enum):
     FINISHED = "finished"
 
 @asyncinit
-class QuestionAssessmentAgent :
+class QuestionAssessmentAgent:
     MAX_ITERATIONS: int = 15
     POLL_INTERVAL_SECONDS: float = 0.5
 
@@ -36,6 +36,9 @@ class QuestionAssessmentAgent :
         client: Optional[AsyncOpenAI] = None,
         assistant_id: Optional[str] = None,
     ):
+        """
+        Initialize the agent with a question and a document.
+        """
         self.question = question
         self.document = document
         self.status = QAStatus.NO_ANSWER
@@ -60,7 +63,7 @@ class QuestionAssessmentAgent :
                 asisstant_id = assistant_id.strip()
         self.assistant_id = assistant_id
 
-        if self.assistant_id is not None: raise ValueError("Assistant ID not found, create one first")
+        if self.assistant_id is None: raise ValueError("Assistant ID not found, create one first")
 
         # One thread per question
         self.thread = await self.client.beta.threads.create()
@@ -75,24 +78,12 @@ class QuestionAssessmentAgent :
     # ------------------------------------------------------------------
     async def run(self) -> Dict[str, Any]:
         # Seed user question 
-        seed = "Reference document" + \
-                f"{self.document}" + \
-                "The question you must answer" + \
-                f"{self.question}" + \
+        seed = "This is the reference document the questions are based upon:" + \
+                f"{self.document}\n\n" + \
+                "The questions you must answer" + \
+                f"{self.question}\n]n" + \
                 """
-                ────────────────────────────────────────
-                What you must do **right now**
-                ────────────────────────────────────────
-
-                1. Restate, in one precise sentence, the information this question seeks.
-                2. Draft **2–4 keyword‑rich BM25 queries** covering synonyms and alternate wording.
-                3. Draft **one MasterQuery** (≤ 70 words) that captures the semantic essence.
-                4. Place your chain‑of‑thought & retrieval plan inside **<notepad>…</notepad>**.
-                5. Follow immediately with **<noAnswer></noAnswer>** so the orchestrator can
-                dispatch the `search` tool.
-
-                *Do **not** call `document_selection` yet; wait until you have inspected the
-                `search` results.*
+                Work efficiently and accurately. 
                 """
 
         await self.client.beta.threads.messages.create(
@@ -105,7 +96,7 @@ class QuestionAssessmentAgent :
         run = await self.client.beta.threads.runs.create(
             thread_id=self.thread.id,
             assistant_id=self.assistant_id,
-        )
+        ) 
 
         # All non‑recoverable terminal states
         _ABORT_STATES = {"failed", "cancelled", "expired", "incomplete"}
@@ -208,6 +199,8 @@ class QuestionAssessmentAgent :
         """Invoke a blocking local function on a thread pool to avoid blocking the event loop."""
         fn_name = call.function.name  # type: ignore[attr-defined]
         args = json.loads(call.function.arguments or "{}")  # type: ignore[attr-defined]
+        if fn_name == "search":
+            args["agentId"] =  self.agent_id# append agent search id for path creation
         # OpenAI/Azure caps tool output at 5 kB
         result = await self.LOCAL_FUNCTIONS[fn_name](**args)
         payload = json.dumps(result)[:5120]
@@ -238,19 +231,18 @@ class QuestionAssessmentAgent :
             self.full_answer_status = ""  # reset if no answer present
             self.status = QAStatus.NO_ANSWER
     
-    # Small util, removes scratch file
-    async def close (self):
+    # Small util, removes scratch file 
+    def close (self):
         os.rmdir(self.results_path)
-        await self.client.close()
 
 
 # ---------------------------------------------------------------------------
 # Convenience procedural API
 # ---------------------------------------------------------------------------
 
-async def assess_question(question: str, document: Dict[str, Any]) -> Dict[str, Any]:
+async def assess_question(question: str, document: Dict[str, Any], client: AsyncOpenAI, assistant_id: str|None = None) -> Dict[str, Any]:
     """Simple functional entry point for callers outside the class world."""
-    agent = await QuestionAssessmentAgent(question, document)
+    agent = await QuestionAssessmentAgent(question = question, document = document, client = client, assistant_id = assistant_id)
     res = await agent.run()
-    await agent.close()
+    agent.close()
     return res
