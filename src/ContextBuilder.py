@@ -1,62 +1,49 @@
 import json
 import os
 import asyncio 
+import aiofiles
 from asyncinit import asyncinit
 
 from openai import AsyncOpenAI
 from dotenv import load_dotenv; load_dotenv()
 
-from src.InfoRetrieval.QuestionEval import assess_question
-
+from QA_Assistant.QuestionEval import assess_question
+from QA_Assistant.Assistant import get_or_create_assistant
 
 @asyncinit
 class Proctor:
-    MAP = {0:"Political.json", 
-           1:"Scientific.json", 
-           2:"Health.json", 
-           3:"Business.json", 
-           4:"Technology.json", 
-           5:"Investigative.json", 
-           6:"Opinion.json", 
-           7:"Data-Journalism.json"}
-    
     async def __init__(self, docId: str) -> None:
+        """
+        Takes in a document and does research and creates the context for the debate
+        """
+        self.context_path = os.getenv("CONTEXT_PATH")
         self.document = docId
-        client = await AsyncOpenAI(api_key=os.getenv("API_KEY"))
-        # bin document and retrieve corresponding template
-        # template generation will likely be async
-        await bin_document(client, docId)
-        # something like await get_template(client, docId)
-        with open(os.getenv("BIN_AGENT_RESULTS_PATH"), 'r', encoding='utf-8') as f:
-            claim_data = json.load(f)
-            self.bin = claim_data["bin_number"]
-            self.templatePath = f"Templates/{self.MAP[self.bin]}"
-            
-    async def create_context (self, contextPath: str) -> str:
-        with open(self.templatePath, 'r', encoding='utf-8') as f:
+        self.client = AsyncOpenAI(
+                azure_endpoint=os.getenv("OPENAI_ENDPOINT"),
+                api_key=os.getenv("OPENAI_API_KEY"),
+                api_version="2024-02-15-preview",
+            )
+        # not implemented yet
+        self.template_path = await get_q_template(self.document)
+        try :
+            self.assistantId = await get_or_create_assistant(self.client)
+        except: 
+            print("Error creating assistant")
+            self.client.close()
+            exit(1)
+
+    async def create_context (self) -> str:
+        with aiofiles.open(self.template_path, 'r', encoding='utf-8') as f:
             template = json.load(f)
+            groups = template["groups"]
             tasks = []
-            for _, question in template.items():
-                tasks.append(assess_question(question, self.document))
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            with open(contextPath, 'w', encoding='utf-8') as f:
-                for r in results:
-                    f.write(r.question + "\n" + r.answer + "\n\n")
-            await reset_index()
-        return contextPath
+            for section in groups:
+                questions = section["questions"]
+                tasks.append(assess_question(questions, self.document, self.client, self.assistantId))
+            with aiofiles.open(self.context_path, 'w', encoding='utf-8') as f:
+                async for r in await asyncio.gather(*tasks, return_exceptions=True):
+                    json.load(r)
+                    await f.write(f"Questions: \n{r["question"]}\n\n Answer: \n{r["answer"]}\n\n Citations: \n{r["citations"]}")
+        return self.context_path
     
-    # sync wrapper for starting async context generation event loop
-    # for testing purposes, the async event loop will be initialized in the main file
-    def _createContext (self,path) -> str:
-        return asyncio.run(self.create_context(path))
     
-async def sub_main():
-    docId = "clueweb22-en0024-53-03398"
-    p = await Proctor(docId)
-    return await p.create_context("context.txt")
-
-def main():
-    print(asyncio.run(sub_main()))
-
-if __name__ == "__main__":
-    main()
