@@ -1,21 +1,11 @@
 /*  -----------------------------------------------------------------------------
-// Searcher.java — concurrency + synonym map + RRF fusion + raw
-//                              JSON output 
-// -----------------------------------------------------------------------------
-// Package: src.InfoRetrieval.Search
-//
-//  • Up to 8 LLM‑generated queries run concurrently.
-//  • Analyzer includes synonymGraph + Porter stemming (unchanged).
-//  • Single‑pass BM25 search on the "contents" field per query.
-//  • RRF fusion (k = 60) across all queries.
-//  • Output: top 600 documents’ raw JSON lines to <output>.jsonl.
-//
-//  Dependencies: Lucene 10.x.
+// Searcher.java — concurrency + synonym map + RRF fusion + raw JSON output
+//                 *collapsed on full‑doc id*
 // -----------------------------------------------------------------------------
 */
-package src.InfoRetrieval.Search;
 
-import org.apache.lucene.analysis.Analyzer;
+package src.QA_Assistant.Search;
+
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -27,28 +17,34 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Searcher {
+
     // ---------------- configuration ----------------
     private static final Path   INDEX_PATH      = Paths.get("./MarcoIndex");
     private static final int    TOP_N_PER_QUERY = 5000;
-    private static final int    FINAL_N         = 750;
+    private static final int    FINAL_N         = 750;          // ← only 75 docs now
     private static final double RRF_K           = 60.0;
-    private static final int    MAX_QUERIES     = 8;   
+    private static final int    MAX_QUERIES     = 8;
 
     private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
         new com.fasterxml.jackson.databind.ObjectMapper();
@@ -67,7 +63,7 @@ public class Searcher {
             stopArgs.put("ignoreCase", "true");
 
             QUERY_ANALYZER =
-                CustomAnalyzer.builder(Paths.get("src/InfoRetrieval/Search/synonyms"))
+                CustomAnalyzer.builder(Paths.get("src/QA_Assistant/Search/synonyms"))
                     .withTokenizer("standard")                  // StandardTokenizer
                     .addTokenFilter("englishPossessive")        // ’s →   (keeps positions)
                     .addTokenFilter("lowercase")
@@ -81,10 +77,17 @@ public class Searcher {
         }
     }
 
+    /* ---------------- per‑rootId aggregate ---------------- */
+    private static class Aggregate {
+        double score;            // cumulative RRF score across queries
+        double bestSegBoost;     // per‑query boost of best segment so far
+        String bestRaw;          // raw JSON for that segment
+    }
+
     // ---------------- main ----------------
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.err.println("Usage: java ConcurrentRRFSearcher <query1> [<query2> ... <query8>] <output.jsonl>");
+            System.err.println("Usage: java Searcher <query1> [<query2> ... <query8>] <output.jsonl>");
             System.exit(1);
         }
         if (args.length - 1 > MAX_QUERIES) {
@@ -96,33 +99,32 @@ public class Searcher {
         List<String> queries = Arrays.asList(Arrays.copyOfRange(args, 0, args.length - 1));
 
         DirectoryReader reader = DirectoryReader.open(FSDirectory.open(INDEX_PATH));
-        IndexSearcher searcher = new IndexSearcher(reader);
+        IndexSearcher   searcher = new IndexSearcher(reader);
         searcher.setSimilarity(new BM25Similarity());
 
-        ConcurrentHashMap<String, Double> scoreMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, String> rawMap   = new ConcurrentHashMap<>();
+        /* one Aggregate per *full doc id* */
+        ConcurrentHashMap<String, Aggregate> aggMap = new ConcurrentHashMap<>();
 
-        ExecutorService pool = Executors.newFixedThreadPool(queries.size());
+        ExecutorService pool    = Executors.newFixedThreadPool(queries.size());
         List<Future<?>> futures = new ArrayList<>();
 
         for (int i = 0; i < queries.size(); i++) {
-            final String qid   = "Q" + (i + 1);
             final String qtext = queries.get(i);
-            futures.add(pool.submit(() -> runSingleQuery(qid, qtext, searcher, scoreMap, rawMap)));
+            futures.add(pool.submit(() -> runSingleQuery(qtext, searcher, aggMap)));
         }
         pool.shutdown();
         for (Future<?> f : futures) f.get();
         reader.close();
 
-        List<Map.Entry<String, Double>> sorted = new ArrayList<>(scoreMap.entrySet());
-        sorted.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        /* ---------------- sort & write top N ---------------- */
+        List<Aggregate> sorted = new ArrayList<>(aggMap.values());
+        sorted.sort((a, b) -> Double.compare(b.score, a.score));
 
         try (BufferedWriter w = Files.newBufferedWriter(Paths.get(outPath))) {
             int count = 0;
-            for (Map.Entry<String, Double> e : sorted) {
-                String raw = rawMap.get(e.getKey());          // may contain embedded new‑lines
+            for (Aggregate ag : sorted) {
                 String oneLine = MAPPER.writeValueAsString(
-                                    MAPPER.readTree(raw));    // parse → emit compact form
+                                     MAPPER.readTree(ag.bestRaw));   // compact form
                 w.write(oneLine);
                 w.newLine();
                 if (++count == FINAL_N) break;
@@ -130,27 +132,44 @@ public class Searcher {
         }
     }
 
-    // ---------------- helper: run single query ----------------
-    private static void runSingleQuery(String qid,
-                                       String qtext,
+    /* ---------------- helper: run single query ---------------- */
+    private static void runSingleQuery(String qtext,
                                        IndexSearcher searcher,
-                                       ConcurrentHashMap<String, Double> scoreMap,
-                                       ConcurrentHashMap<String, String> rawMap) {
+                                       ConcurrentHashMap<String, Aggregate> aggMap) {
         try {
             Query query = new QueryParser("contents", QUERY_ANALYZER).parse(qtext);
-            TopDocs td = searcher.search(query, TOP_N_PER_QUERY);
+            TopDocs td  = searcher.search(query, TOP_N_PER_QUERY);
+
+            /* ensure only the *highest‑ranked* segment per rootId
+               influences this query’s scoring */
+            HashSet<String> seenRootIds = new HashSet<>();
 
             for (int rank = 0; rank < td.scoreDocs.length; rank++) {
                 ScoreDoc sd  = td.scoreDocs[rank];
                 Document doc = searcher.storedFields().document(sd.doc);
-                String docId = doc.get("id");
-                String raw   = doc.get("raw");
-                double add   = 1.0 / (RRF_K + (rank + 1));
-                scoreMap.merge(docId, add, Double::sum);
-                rawMap.putIfAbsent(docId, raw);
+                String segId = doc.get("id");
+                int hashPos  = segId.indexOf('#');
+                if (hashPos <= 0) continue;                    // safety check
+
+                String rootId = segId.substring(0, hashPos);
+                if (!seenRootIds.add(rootId)) continue;        // already handled
+
+                double rrfBoost = 1.0 / (RRF_K + (rank + 1));
+                String raw      = doc.get("raw");
+
+                /* atomically merge/update the aggregate */
+                aggMap.compute(rootId, (k, ag) -> {
+                    if (ag == null) ag = new Aggregate();
+                    ag.score += rrfBoost;
+                    if (rrfBoost > ag.bestSegBoost) {
+                        ag.bestSegBoost = rrfBoost;
+                        ag.bestRaw      = raw;
+                    }
+                    return ag;
+                });
             }
         } catch (Exception e) {
-            throw new RuntimeException("Query " + qid + " failed", e);
+            throw new RuntimeException("Query failed: \"" + qtext + "\"", e);
         }
     }
 }

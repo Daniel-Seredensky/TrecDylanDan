@@ -2,6 +2,8 @@ clueweb
 *.DS_Store
 *__pycache__
 *.env
+*.venv
+*.conda
 
 .conda
 *.class
@@ -12,9 +14,12 @@ DerivedData/ContextBuilder/*
 DerivedData/MSMarcoIndex
 MarcoIndex/*
 !MarcoIndex/.gitkeep
+DerivedData/Assistant/AssistantId.txt
+cleanup.txt
 
 # Keep empty directories
 !DerivedData/CluewebIndex/.gitkeep
 !DerivedData/SearchResults/.gitkeep
 !DerivedData/BinAgent/.gitkeep
 !DerivedData/ContextBuilder/.gitkeep
+

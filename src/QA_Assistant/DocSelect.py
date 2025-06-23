@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import List
 
-JAVA_CLASSPATH = "src/InfoRetrieval/Search/lib/*:."
+JAVA_CLASSPATH = "src/QA_Assistant/Search/lib/*:."
 
 async def select_documents(
     document_ids: List[str],
@@ -39,7 +39,7 @@ async def select_documents(
     cmd: list[str] = [
         "java",
         "-cp", JAVA_CLASSPATH,
-        "src.InfoRetrieval.Search.DocumentSelection",
+        "src.QA_Assistant.Search.DocumentSelection",
     ]
     if is_segment:
         cmd.append("--asSegments")
@@ -73,22 +73,10 @@ async def select_documents(
 async def _demo():
     # single full‑text document
     full = await select_documents(
-        ["msmarco_v2.1_doc_34_377607799#0_810317656"],  # any segment ID of the doc
+        ["msmarco_v2.1_doc_24_434728473#0_962031585"],  # any segment ID of the doc
         is_segment=False
     )
-    print(full[0]["fullText"][:120], "...\n")
-
-    # up to 4 exact segments
-    segs = await select_documents(
-        [
-            "msmarco_v2.1_doc_10_194083182#0_370167565",
-            "msmarco_v2.1_doc_44_451319986#1_1072893771"
-        ],
-        is_segment=True
-    )
-    for s in segs:
-        print(s["id"], "→", s["segment"][:60], "...")
-
+    print(full[0])
 
 if __name__ == "__main__":
     asyncio.run(_demo())

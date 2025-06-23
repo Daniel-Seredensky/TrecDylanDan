@@ -1,4 +1,4 @@
-package src.InfoRetrieval.Search;
+package src.QA_Assistant.Search;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -16,17 +16,17 @@ async def search(queries: List[str], master_query, agentId) -> List[dict]:
     Perform full search pipeline
     """
     results = os.getenv("BM25_RESULTS_PATH")
-    path = f"{results}/{agentId}/results.jsonl"  
+    path = f"{results}/{agentId}/results.jsonl"
     await run_bm25_search(queries, path)
     return await rerank_jsonl(path, master_query)
 
-JAVA_CLASSPATH = "src/InfoRetrieval/Search/lib/*:."
+JAVA_CLASSPATH = "src/QA_Assistant/Search/lib/*:."
 
 async def run_bm25_search(queries: list[str], path: Path) -> None:
     cmd = [
         "java",
         "-cp", JAVA_CLASSPATH,
-        "src.InfoRetrieval.Search.Searcher",
+        "src.QA_Assistant.Search.Searcher",
         *queries,
         str(path)
     ]
@@ -69,8 +69,8 @@ async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
             meta.append({
                 "title":     obj.get("title"),
                 "url":       obj.get("url"),
-                "headings":  obj.get("headings"),   # sometimes called 'headers'
-                "segmentId": obj.get("segmentId")
+                "headings":  obj.get("headings"),  
+                "segment_id": obj.get("docid")
             })
 
     # 2) Call Cohere v2 Rerank endpoint
@@ -82,7 +82,7 @@ async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
         "model":     "rerank-v3.5",       # or whichever v2 model you prefer
         "query":     master_query,
         "documents": segments,
-        "top_n":     75
+        "top_n":     15
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -99,7 +99,7 @@ async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
         body.get("results", []),
         key=lambda x: x["relevance_score"],
         reverse=True
-    )[:75]
+    )[:15] # 15 right now for testing
 
     # 4) Build output JSONL with only the requested metadata
     out_lines = []
@@ -110,11 +110,9 @@ async def rerank_jsonl(jsonl_path: str, master_query: str) -> str:
             "title":     m["title"],
             "url":       m["url"],
             "headings":  m["headings"],
-            "segmentId": m["segmentId"]
+            "segment_id": m["segment_id"]
         }))
-
     return "\n".join(out_lines)
-
 
 async def main ():
     queries = ["loving words from the bible", "heart felt messages bible"]

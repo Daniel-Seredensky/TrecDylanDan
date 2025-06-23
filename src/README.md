@@ -8,7 +8,7 @@ The MARCO V2.1 segmented dataset is very large, and our compute resources are 
 
 1. **Query Generation**
 
-   * **What happens:** An LLM produces 2–4 BM25‑optimized queries plus a separate “master” query.
+   * **What happens:** An LLM produces 2–8 BM25‑optimized queries plus a separate “master” query.
    * **Why:** Multiple, targeted BM25 queries boost recall by covering different phrasings; the master query serves as the anchor for later refinement.
 
 2. **Synonym Expansion & BM25 Search**
@@ -24,15 +24,7 @@ The MARCO V2.1 segmented dataset is very large, and our compute resources are 
      * **Cost:** Local BM25 searches and synonym expansion are very cheap.
      * **Recall:** Collapsing on `document_id` prevents over‑weighting duplicated segments, while RRF fusion amalgamates signals across queries.
 
-3. **Pseudo‑Relevance Feedback (PRF)**
-
-   * **What happens:** We take the top 10–20 terms from the RRF output and append them to the master query.
-   * **Why:**
-
-     * **Recall:** PRF enriches the master query with dataset‑specific vocabulary identified as likely relevant.
-     * **Cost:** Extracting terms and expanding the master query is low‑overhead.
-
-4. **Cohere Cross‑Encoder Reranking**
+3. **Cohere Cross‑Encoder Reranking**
 
    * **What happens:**
 
@@ -46,7 +38,7 @@ The MARCO V2.1 segmented dataset is very large, and our compute resources are 
        * Restricting to 600 (instead of, say, 1,000+) keeps CE costs and latency within reasonable bounds.
      * **Simplicity:** A single CE call is straightforward to implement and monitor.
 
-5. **LLM Context & Document Selection**
+4. **LLM Context & Document Selection**
 
    * **What happens:** The top 75 metadata records (title, URL, headers, snippet IDs) are provided to the LLM. It then selects which documents (or segments) to read in full.
    * **Why:**
@@ -54,7 +46,7 @@ The MARCO V2.1 segmented dataset is very large, and our compute resources are 
      * **Cost Efficiency:** Passing only 75 candidates to the LLM keeps context lengths manageable and API usage low.
      * **Precision:** The final selection ensures the LLM works with the most promising documents.
 
-6. **Autonomous Question Evaluation**
+5. **Autonomous Question Evaluation**
 
    * **What happens:** Through the Azure Assistants API, the LLM iteratively composes an answer to the original question, drawing on the selected full‑text documents with minimal human oversight.
    * **Why:**
@@ -181,29 +173,30 @@ flowchart TD
 
 ``` bash
 
-javac -cp "src/InfoRetrieval/Search/lib/*:." src/InfoRetrieval/Search/*.java
+javac -cp "src/QA_Assistant/Search/lib/*:." src/QA_Assistant/Search/*.java
 
 ```
 
 **Execution**
 
 ``` bash
-
-java -cp "src/InfoRetrieval/Search/lib/*:." src.InfoRetrieval.Search.JsonIndexer
-java -cp "src/InfoRetrieval/Search/lib/*:." src.InfoRetrieval.Search.Searcher
-
+java -cp "src/QA_Assistant/Search/lib/*:." src.QA_Assistant.Search.DocumentSelection
+java -cp "src/QA_Assistant/Search/lib/*:." src.QA_Assistant.Search.Searcher
 ```
 
-## Current Plan Renovations
 
-* create a custom synonym map for the search pipeline
-* modify the agent to generate 2-8 narrower queries, master query, and seed paragraph
-* modify the search pipeline to expande the 2-8 queries using custom synonym map
-* modify the search pipeline to initially dedupe results by collapsing the search based on document id, gives the best ranked segment per group
-* modify search pipeline to further dedupe (maybe group rrf)
-* cache already embedded vectors, the skip any candidate whose cosine similarity with an already‑kept vector is ≥ 0.95. The compare‑and‑skip adds ≤ 3 ms for 200 vectors.
-* create/modify document selection tool to either, get the full document text, or only the best segment by document id (max of 3 docs if segment, max of 1 if full doc)
-* Modify Azure AI Search resource to use the custom synonym map
-* finish making the Azure janitor index schema 
-* Revise the agent such that Azure assistant creation only needs to happen once (class method),from there each question gets its own assistants message thread (if thats how it works more research is needed)
+# Current plans
 
+* implement better storage for each assistant
+> Store/Track: threadID, LLM responses, answer progress,
+search queries, top 15 search results, top 75 results, 
+* implement a page tool
+> you can only send up to 5kb per tool call response, I don't want the LLM to have to redo similar searches over time, implement a page tool (segments of 15 from 0-75?)
+* implement a fall back bing search tool 
+> if the LLM can't find anything from the marco index we go to bing
+hopefully bing will be useful and we can just attempt to cross validate the bing results with the marco index
+* implement a better fallback plan
+> `_force_final_prompt` can be improved 
+* ? Implement a file search tool
+> instead of sending in the results of a search as text, attach as a file 
+not sure if this will be useful
