@@ -114,7 +114,12 @@ Available Tools:
 - brave_search(query, num_results): Use only if MARCO yields no evidence.
 
 Response Protocol:
-1. <notepad>...</notepad>: Brief plan, tool justification, and verification notes. Keep it short; logs truncate after 500 tokens.
+Always reply with **both** wrappers, in this order
+1. <notepad>
+     <cot> … step‑by‑step reasoning … </cot>
+     <summary> … ≤ 5 concise bullet points describing *new* evidence /
+                tool results / open questions you'll tackle next run … </summary>
+   </notepad>
 2. <noAnswer></noAnswer> or <answer>{...}</answer>: JSON per question, e.g.
    {
      "question":  "<verbatim user question>",
