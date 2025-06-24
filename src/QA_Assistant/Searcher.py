@@ -2,15 +2,25 @@
 Search module for the Information Retrieval project.
 """
 
-from typing import List
 import asyncio
-from dotenv import load_dotenv; load_dotenv()
-import os
 import aiofiles
 import json
 from  pathlib import Path
 import aiohttp
 import httpx
+import httpx
+
+import json 
+import os
+
+from  pathlib import Path
+from functools import partial
+from dotenv import load_dotenv; load_dotenv()
+from typing import List
+
+from Rate_limits import gated_cohere_rerank_call
+
+
 
 async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
@@ -31,11 +41,12 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
         *queries,
         str(path)
     ]
+    print(cmd)
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
-        stdout=asyncio.subprocess.DEVNULL,   # capture if you need it; else use None|DEVNULL
-        stderr=asyncio.subprocess.DEVNULL
+        stdout=None,   # capture if you need it; else use None|DEVNULL
+        stderr=None
     )
 
     try:
@@ -87,8 +98,12 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(
-            "https://api.cohere.com/v2/rerank",
+        cohere_call = partial(                      # bound fn with URL pre‑filled
+            client.post,
+            "https://api.cohere.com/v2/rerank"
+        )
+        resp = await gated_cohere_rerank_call(      #  ◎  NEW
+            cohere_call,
             headers=headers,
             json=payload
         )

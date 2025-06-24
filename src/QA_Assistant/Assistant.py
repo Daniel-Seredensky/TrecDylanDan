@@ -54,17 +54,17 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "document_ids": {
+                    "segment_ids": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of document IDs."
+                        "description": "List of **full segment id**'s."
                     },
                     "is_segment": {
                         "type": "boolean",
                         "description": "True → segment, False → full document text."
                     }
                 },
-                "required": ["document_ids", "is_segment"]
+                "required": ["segment_ids", "is_segment"]
             }
         },
     },
@@ -193,4 +193,15 @@ async def delete_assistant(client: AsyncAzureOpenAI) -> None:
 async def _ensure_cache_dir() -> None:
     Path(ASSISTANT_ID_FILE).parent.mkdir(parents=True, exist_ok=True)
 
-
+async def _main():
+    load_dotenv()
+    client = AsyncAzureOpenAI(                       # or alias as shown above
+            api_key        = os.getenv("AZURE_OPENAI_KEY"),
+            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_version    = os.getenv("AZURE_API_VERSION"),
+            timeout        = 30.0,
+            max_retries    = 3,
+        )
+    _ensure_cache_dir()
+    delete_assistant(client)
+    

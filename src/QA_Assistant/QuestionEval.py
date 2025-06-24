@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict, Any, Optional, Callable, List, Union
 from uuid import uuid4
 from openai.types.beta.threads import Message, MessageContent
+import traceback
 
 
 from asyncinit import asyncinit
@@ -22,7 +23,7 @@ ASSISTANT_ID_FILE = "DerivedData/Assistant/AssistantId.txt"
 
 class QAStatus(Enum):
     NO_ANSWER = "no_answer"
-    HAS_ANSWER = "has_answer"
+    PARTIAL_ANSWER = "partial_answer"
     FINISHED   = "finished"
 
 # ────────────────────────────────────────────────────────────────────────────────
@@ -50,8 +51,16 @@ class QuestionAssessmentAgent:
 
         # Each agent run gets its own temp directory for search artefacts
         self.agent_id = uuid4()
-        self.results_path = os.path.join(os.getenv("BM25_RESULTS_PATH"), f"{self.agent_id}")
+        self.results_path: str = os.path.join(os.getenv("BM25_RESULTS_PATH"), f"{self.agent_id}")
         os.makedirs(self.results_path, exist_ok=True)
+
+        self.convo_path = os.path.join(self.results_path, "Convo.txt")
+        self.tools_path = os.path.join(self.results_path, "Tools.txt")
+        self.thread_path = os.path.join(self.results_path,"Thread.txt")
+        # touch them so they always exist
+        async with aiofiles.open(self.convo_path, "w"): pass
+        async with aiofiles.open(self.tools_path, "w"): pass
+
 
         # Async client (already configured for Azure endpoint + v2 header)
         self.client = client
@@ -67,78 +76,128 @@ class QuestionAssessmentAgent:
 
         # Thread per question
         self.thread = await self.client.beta.threads.create()
+        async with aiofiles.open(self.thread_path,"w") as w:
+            await w.write(self.thread.id)
 
         # Local function‑tools wired into the assistant manifest
         self.LOCAL_FUNCTIONS: Dict[str, Callable[..., Any]] = {
             "search": search,
-            "document_selection": select_documents,
+            "select_documents": select_documents,
         }
 
     # ────────────────────────────────────────────────────────────────────────
     # Public entry point
     # ────────────────────────────────────────────────────────────────────────
     async def run(self) -> Dict[str, Any]:
-        """Kick off a streaming run and return final / partial answer JSON."""
+        """
+        Keep launching new runs on the same thread until
 
-        # 1.  Seed user message ------------------------------------------------
+        • the assistant sets "finished": true   → QAStatus.FINISHED
+        • or we exceed MAX_TOOL_ROUNDS          → fallback summary
+        """
+
+        # 0.  Seed message (sent exactly once) ---------------------------------
         seed = (
-            "This is the reference document the questions are based upon:\n" +
-            json.dumps(self.document, ensure_ascii=False) + "\n\n" +
-            "The questions you must answer:\n" + self.question + "\n\n" +
-            "Work efficiently and accurately."
+            "This is the reference document the questions are based upon:\n"
+            + json.dumps(self.document, ensure_ascii=False) + "\n\n"
+            "The questions you must answer:\n" + self.question + "\n\n"
+            "Work efficiently and accurately. Call `search` and "
+            "`document_selection` as needed; stop only when you are fully confident "
+            'and set `"finished": true` in your <answer> block.'
         )
         await self.client.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role="user",
-            content=seed,
+            thread_id=self.thread.id, role="user", content=seed
         )
 
-        # 2.  Start assistant run – **streaming** -----------------------------
-        stream = await self.client.beta.threads.runs.create(
-            thread_id=self.thread.id,
-            assistant_id=self.assistant_id,
-            stream=True,
-        )
+        tool_calls_so_far = 0
 
-        # 3.  Event‑driven loop over the server‑sent events -------------------
-        async for event in stream:
-            e_type = getattr(event, "event", None)
+        # 1.  MAIN LOOP – one Assistant *run* per turn -------------------------
+        try:
+            while self.status != QAStatus.FINISHED:
 
-            # ── Assistant message complete ---------------------------------
-            if e_type == "thread.message.completed" and event.data.role == "assistant":
-                self._update_status(event.data)
+                if tool_calls_so_far >= self.MAX_TOOL_ROUNDS:
+                    await self._force_final_prompt()
+                    break  # exit while loop
 
-            # ── Tool calls ---------------------------------------------------
-            if e_type == "thread.run.requires_action":
-                calls = event.data.required_action.submit_tool_outputs.tool_calls
-                # Evaluate tool calls concurrently
-                outputs = await asyncio.gather(*[self._dispatch_tool(c) for c in calls])
-
-                # Resume the run – still in streaming mode
-                stream = await self.client.beta.threads.runs.submit_tool_outputs(
+                # ── 1a. start a streaming run
+                stream = await self.client.beta.threads.runs.create(
                     thread_id=self.thread.id,
-                    run_id=event.data.id,  # run‑id now comes from data.id
-                    tool_outputs=outputs,
+                    assistant_id=self.assistant_id,
                     stream=True,
                 )
-                continue  # next events come from the new stream generator
+                self.run_id = None
 
-            # ── Terminal states ---------------------------------------------
-            if e_type == "thread.run.completed":
-                return {"status": self.status.value, "content": self.full_answer_status}
+                # ── 1b. consume SSE events for this run
+                while True:
+                    async for event in stream:
+                        e = getattr(event, "event", None)
 
-            if e_type.startswith("thread.run.") and getattr(event.data, "status", "") in {
-                "failed", "cancelled", "expired", "incomplete"
-            }:
-                return {
-                    "status": self.status.value,
-                    "content": self.full_answer_status,
-                    "run_state": event.data.status,
-                }
+                        # remember run‑id once
+                        if self.run_id is None and hasattr(event.data, "id"):
+                            self.run_id = event.data.id
 
-        # 4.  Fallback – stream exhausted unexpectedly ------------------------
-        await self._force_final_prompt()
-        return {"status": self.status.value, "content": self.full_answer_status}
+                        # assistant message completed
+                        if e == "thread.message.completed" and event.data.role == "assistant":
+                            content = self._as_text(event.data.content)
+                            async with aiofiles.open(self.convo_path, "a") as f:
+                                await f.write(content + "\n---\n")
+                            self._update_status(event.data)
+
+                        # tool call(s) required
+                        if e == "thread.run.requires_action":
+                            calls   = event.data.required_action.submit_tool_outputs.tool_calls
+                            outputs = await asyncio.gather(*[self._dispatch_tool(c) for c in calls])
+
+                            tool_calls_so_far += len(calls)
+
+                            # continue streaming after tool outputs
+                            stream = await self.client.beta.threads.runs.submit_tool_outputs(
+                                thread_id=self.thread.id,
+                                run_id=event.data.id,
+                                tool_outputs=outputs,
+                                stream=True,
+                            )
+                            break  # restart inner async‑for with new iterator
+
+                        # run finished normally
+                        if e == "thread.run.completed":
+                            break  # leave inner async‑for
+
+                        # run ended abnormally
+                        if e.startswith("thread.run.") and getattr(event.data, "status", "") in {
+                            "failed", "cancelled", "expired", "incomplete"
+                        }:
+                            return {
+                                "status": self.status.value,
+                                "content": self.full_answer_status,
+                            }
+                    else:
+                        break  # iterator exhausted unexpectedly
+
+                    # inner while restart logic
+                    if self.status == QAStatus.FINISHED:
+                        break
+
+                # 1c. if not finished, poke assistant to continue
+                if self.status != QAStatus.FINISHED and tool_calls_so_far < self.MAX_TOOL_ROUNDS:
+                    await self.client.beta.threads.messages.create(
+                        thread_id=self.thread.id,
+                        role="user",
+                        content="Continue working.",
+                    )
+
+        except Exception:
+            traceback.print_exc()
+            return {
+                "status": self.status.value,
+                "content": self.full_answer_status,
+            }
+
+        # 2.  DONE -------------------------------------------------------------
+        return {
+            "status": self.status.value,
+            "content": self.full_answer_status,
+        }
 
     # ────────────────────────────────────────────────────────────────────────
     # Tool dispatch helper
@@ -149,9 +208,36 @@ class QuestionAssessmentAgent:
         args = json.loads(call.function.arguments or "{}")
         if fn_name == "search":
             args["agentId"] = str(self.agent_id)  # pass search‑scoped ID
-        result = await self.LOCAL_FUNCTIONS[fn_name](**args)
-        payload = json.dumps(result)[:5120]
-        return {"tool_call_id": call.id, "output": payload}
+        try: 
+            result = await self.LOCAL_FUNCTIONS[fn_name](**args)
+            payload = json.dumps(result)[:5120]
+            async with aiofiles.open(self.tools_path, "a") as f:
+                await f.write(
+                    json.dumps(
+                        {
+                            "tool": fn_name,
+                            "args": args,
+                            "result": result,
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+            return {"tool_call_id": call.id, "output": payload}
+        except:
+            async with aiofiles.open(self.tools_path, "a") as f:
+                await f.write(
+                    json.dumps(
+                        {
+                            "tool": fn_name,
+                            "args": args,
+                            "result": "tool called failed",
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+            return {"tool_call_id": call.id, "output": "tool call failed"}
 
     # ────────────────────────────────────────────────────────────────────────
     # Helper utilities
@@ -164,16 +250,9 @@ class QuestionAssessmentAgent:
             content=(
                 "Max iterations or an unexpected error stopped the run.\n\n"
                 "Compose **one final assistant message** and then **stop**.\n\n"
-                "<notepad>\n"
                 "• Briefly (1–3 bullets) explain what you tried and why it was insufficient.  \n"
                 "• Note what additional evidence or queries would likely resolve the question.\n"
-                "</notepad>\n\n"
-                "<answer>{\n"
-                f"\"question\": \"{self.question}\",\n"
-                "\"answer\": \"Summarise what you know so far and state clearly why you are not yet fully confident.\",\n"
-                "\"citations\": [],\n"
-                "\"finished\": false\n"
-                "}</answer>"
+                "Provide your answer with the same jsonic format as the other answers placing your description in the answer field. Make sure to put citations in the citations field if there are any."
             ),
         )
 
@@ -183,15 +262,12 @@ class QuestionAssessmentAgent:
         match = re.search(r"<answer>(.*?)</answer>", content, re.DOTALL)
         if match:
             payload = match.group(1).strip()
-            self.full_answer_status = payload
+            self.full_answer_status = payload if payload != None else self.full_answer_status
             self.status = (QAStatus.FINISHED
                         if '"finished": true' in payload
-                        else QAStatus.HAS_ANSWER)
-        else:
-            self.full_answer_status = ""
-            self.status = QAStatus.NO_ANSWER
+                        else QAStatus.PARTIAL_ANSWER)
 
-    def _as_text(blocks: Union[str, List[MessageContent]]) -> str:
+    def _as_text(self,blocks: List[MessageContent]) -> str:
         """
         v2 `Message.content` may be a string (rare) or a list of MessageContent objects.
         Concatenate **only the text blocks** into one string.
@@ -205,6 +281,12 @@ class QuestionAssessmentAgent:
                 # b.text.value holds the actual text
                 parts.append(b.text.value)
         return "\n".join(parts)
+    
+    async def cancel_run(self):
+        await self.client.beta.threads.runs.cancel(
+                        thread_id=self.thread.id, run_id=self.run_id
+                    )
+        
 
     # Clean‑up – remove temp search directory ---------------------------------
     def close(self) -> None:
@@ -233,6 +315,10 @@ async def assess_question(
         client=client,
         assistant_id=assistant_id,
     )
-    result = await agent.run()
-    agent.close()
-    return result
+    try: 
+        result = await agent.run()
+        return result
+    except Exception as e:
+        agent.cancel_run()
+        traceback.print_exc()
+    

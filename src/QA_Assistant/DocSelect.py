@@ -10,7 +10,7 @@ from typing import List
 JAVA_CLASSPATH = "src/QA_Assistant/Search/lib/*:."
 
 async def select_documents(
-    document_ids: List[str],
+    segment_ids: List[str],
     is_segment: bool,
     timeout: int = 120
 ) -> List[dict]:
@@ -20,7 +20,7 @@ async def select_documents(
 
     Args
     ----
-    document_ids : up to 4 segment IDs if `is_segment=True`;
+    segment_ids : up to 4 segment IDs if `is_segment=True`;
                    exactly 1 segment ID if `is_segment=False`.
     is_segment   : True  → return each segment's text
                    False → return full document text built from sliding‑window segments
@@ -30,9 +30,9 @@ async def select_documents(
     -------
     List[dict] — each dict is what the Java tool printed (parsed from JSON).
     """
-    if is_segment and len(document_ids) > 4:
+    if is_segment and len(segment_ids) > 4:
         raise ValueError("With is_segment=True you may pass up to 4 IDs.")
-    if not is_segment and len(document_ids) == 0:
+    if not is_segment and len(segment_ids) == 0:
         raise ValueError("Need at least one ID")
 
     # ---------- build command ----------
@@ -43,7 +43,7 @@ async def select_documents(
     ]
     if is_segment:
         cmd.append("--asSegments")
-    cmd.extend(document_ids)
+    cmd.extend(segment_ids)
 
     # ---------- spawn ----------
     proc = await asyncio.create_subprocess_exec(
