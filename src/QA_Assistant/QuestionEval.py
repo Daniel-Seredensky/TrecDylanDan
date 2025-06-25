@@ -34,6 +34,8 @@ class QuestionAssessmentAgent:
     """Single‑question assessment agent leveraging local search tools."""
 
     MAX_TOOL_ROUNDS: int = 15  # guard against infinite tool chains
+    NOTEPAD_RE   = re.compile(r"<notepad>(.*?)</notepad>", re.S)
+    SUMMARY_RE   = re.compile(r"<summary>(.*?)</summary>", re.S)
 
     async def __init__(
         self,
@@ -60,7 +62,6 @@ class QuestionAssessmentAgent:
         # touch them so they always exist
         async with aiofiles.open(self.convo_path, "w"): pass
         async with aiofiles.open(self.tools_path, "w"): pass
-
 
         # Async client (already configured for Azure endpoint + v2 header)
         self.client = client
@@ -161,6 +162,7 @@ class QuestionAssessmentAgent:
 
                         # run finished normally
                         if e == "thread.run.completed":
+                            self.wipe_thread(event= event) # wipe the thread and replace it with Assistant summary
                             break  # leave inner async‑for
 
                         # run ended abnormally
@@ -182,8 +184,8 @@ class QuestionAssessmentAgent:
                 if self.status != QAStatus.FINISHED and tool_calls_so_far < self.MAX_TOOL_ROUNDS:
                     await self.client.beta.threads.messages.create(
                         thread_id=self.thread.id,
-                        role="user",
-                        content="Continue working.",
+                        role="assistant",
+                        content=f"# Continue\nYour previous summary: \n{self.summary}\n\n Your previous answer \n\n {self.full_answer_status}",
                     )
 
         except Exception:
@@ -258,7 +260,8 @@ class QuestionAssessmentAgent:
 
     def _update_status(self, assistant_msg: Message) -> None:
         """Extract JSON inside <answer>…</answer> and update status flags."""
-        content = self._as_text(assistant_msg.content)          
+        content = self._as_text(assistant_msg.content)    
+        self.summary = self._harvest_summary(content)      
         match = re.search(r"<answer>(.*?)</answer>", content, re.DOTALL)
         if match:
             payload = match.group(1).strip()
@@ -286,8 +289,21 @@ class QuestionAssessmentAgent:
         await self.client.beta.threads.runs.cancel(
                         thread_id=self.thread.id, run_id=self.run_id
                     )
-        
+    async def wipe_thread(self,event):
+        await self.client.beta.threads.messages.delete(
+            thread_id=self.thread.id,
+            message_id=event.data.id,
+        )
 
+    def _harvest_summary(self, assistant_msg):
+        """Pull the <summary>…</summary> text out of the latest notepad."""
+        m_notepad = self.NOTEPAD_RE.search(self._as_text(assistant_msg.content))
+        if not m_notepad:
+            return None
+
+        m_sum = self.SUMMARY_RE.search(m_notepad.group(1))
+        return m_sum.group(1).strip() if m_sum else None
+        
     # Clean‑up – remove temp search directory ---------------------------------
     def close(self) -> None:
         try:

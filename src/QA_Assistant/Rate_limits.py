@@ -10,36 +10,26 @@ Install once:
 
     pip install aiolimiter tiktoken
 """
-
 from __future__ import annotations
-
-import asyncio
 from typing import Callable, Awaitable, Any
 
-from aiolimiter import AsyncLimiter
-import tiktoken
+from QA_Assistant.token_bucket import AsyncTokenBucket
 from Assistant import SYSTEM_PROMPT, TOOLS
 
+import tiktoken
 
-# ───────────────────────────────────────────────────────────────────────────────
-#  Global limiters
-# ───────────────────────────────────────────────────────────────────────────────
-WINDOW                  = 60                     # seconds
+# ───────────────────────────────────────── config ────────────────────────────
+WINDOW                 = 60.0                      # seconds
+OPENAI_REQ_CAP         = 50                        # requests / 60 s
+OPENAI_TOKEN_CAP       = 50_000                   # tokens   / 60 s
+COHERE_RERANK_CAP      = 20                        # requests / 60 s
+DEFAULT_MAX_COMPLETION = 3_500                     # safety upper‑bound
 
-# OpenAI
-OPENAI_REQ_LIMIT        = 50                     # requests / WINDOW
-OPENAI_TOKEN_LIMIT      = 50_000                 # tokens   / WINDOW
-
-openai_req_limiter      = AsyncLimiter(OPENAI_REQ_LIMIT,   WINDOW)
-openai_tok_limiter      = AsyncLimiter(OPENAI_TOKEN_LIMIT, WINDOW)
-
-# Cohere
-COHERE_RERANK_LIMIT     = 20                     # rerank calls / WINDOW
-cohere_rerank_limiter   = AsyncLimiter(COHERE_RERANK_LIMIT, WINDOW)
-
-# Token encoder (same rules GPT‑4 uses)
+# ───────────────────────────────────── limiters ──────────────────────────────
+openai_req_limiter   = AsyncTokenBucket(OPENAI_REQ_CAP,    WINDOW)
+openai_tok_limiter   = AsyncTokenBucket(OPENAI_TOKEN_CAP,  WINDOW)
+cohere_rerank_limiter = AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW)
 ENCODER = tiktoken.get_encoding("cl100k_base")
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 #  Helpers
@@ -58,39 +48,40 @@ async def gated_openai_call(
     send_fn: Callable[..., Awaitable[Any]],
     *,
     prompt: str = "",
-    max_tokens: int = 2500,
+    max_tokens: int = 5_000,
     **kwargs,
 ):
     """
     Throttle *any* OpenAI SDK coroutine so the whole app stays within
-    • ≤ 50 requests per 60 s
-    • ≤ 50 000 tokens  per 60 s (prompt + completion)
+
+      • ≤ 50   requests per 60 s
+      • ≤ 50 000 tokens  per 60 s  (prompt + completion)
 
     Parameters
     ----------
     send_fn
-        The SDK coroutine you would normally `await`.
+        The coroutine you would normally `await`.
     prompt
         The text you just supplied to the model (user + system messages etc.).
-        Used only for token counting.
+        Only used for token bookkeeping.
     max_tokens
-        Your `max_tokens=` setting for the call (upper bound on the model’s reply).
+        Your `max_tokens=` hint for the call (upper bound on the reply).
     **kwargs
-        Passed straight through to *send_fn*.
-    """ 
+        Passed straight through to `send_fn`.
+    """
     prompt_tokens = count_tokens(SYSTEM_PROMPT + TOOLS + prompt)
-    total_cost    = prompt_tokens + (max_tokens or 3500)
+    total_tokens  = prompt_tokens + (max_tokens or DEFAULT_MAX_COMPLETION)
 
-    if total_cost > OPENAI_TOKEN_LIMIT:
+    if total_tokens > OPENAI_TOKEN_CAP:
         raise ValueError(
-            f"Single call would consume {total_cost} tokens, "
-            f"exceeding the per‑minute allowance of {OPENAI_TOKEN_LIMIT}."
+            f"Single call would consume {total_tokens:,} tokens "
+            f"(limit per 60 s is {OPENAI_TOKEN_CAP:,})."
         )
 
-    # one request, *total_cost* tokens
-    async with openai_req_limiter:                    # request budget
-        async with openai_tok_limiter.acquire(total_cost):  # token budget
-            return await send_fn(**kwargs)
+    # Reserve *one* request + *total_tokens* tokens
+    async with openai_req_limiter.acquire(1):
+        async with openai_tok_limiter.acquire(total_tokens):
+            return await send_fn(max_tokens=max_tokens, **kwargs)
 
 
 async def gated_cohere_rerank_call(
@@ -98,7 +89,7 @@ async def gated_cohere_rerank_call(
     **kwargs,
 ):
     """
-    Throttle Cohere’s `/rerank` so we issue ≤ 10 calls per minute.
+    Throttle Cohere’s `/rerank` so we issue ≤ 20 calls per minute.
 
     Example
     -------
@@ -112,5 +103,32 @@ async def gated_cohere_rerank_call(
             documents=docs,
         )
     """
-    async with cohere_rerank_limiter:
+    async with cohere_rerank_limiter.acquire(1):
         return await send_fn(**kwargs)
+
+# rate_limits.py  (append right below gated_openai_call)
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def gated_openai_stream(
+    send_fn: Callable[..., Awaitable[Any]],
+    *,
+    prompt: str = "",
+    max_tokens: int = 5_000,
+    **kwargs,
+):
+    """Exactly like `gated_openai_call` but yields an SSE stream."""
+    prompt_tokens = count_tokens(SYSTEM_PROMPT + TOOLS + prompt)
+    reserve = prompt_tokens + (max_tokens or DEFAULT_MAX_COMPLETION)
+
+    if reserve > OPENAI_TOKEN_CAP:
+        raise ValueError(f"Single call would cost {reserve:,} tokens (limit {OPENAI_TOKEN_CAP:,}).")
+
+    async with openai_req_limiter.acquire(1):
+        async with openai_tok_limiter.acquire(reserve):
+            stream = await send_fn(max_tokens=max_tokens, **kwargs)
+            try:
+                yield stream, reserve          # pass back what we reserved
+            finally:
+                # nothing to release – reservation auto‑expires after 60 s
+                pass

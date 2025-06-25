@@ -18,7 +18,7 @@ from functools import partial
 from dotenv import load_dotenv; load_dotenv()
 from typing import List
 
-from Rate_limits import gated_cohere_rerank_call
+from rate_limits import gated_cohere_rerank_call
 
 
 
@@ -102,7 +102,7 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
             client.post,
             "https://api.cohere.com/v2/rerank"
         )
-        resp = await gated_cohere_rerank_call(      #  ◎  NEW
+        resp = await gated_cohere_rerank_call(     
             cohere_call,
             headers=headers,
             json=payload
@@ -156,7 +156,7 @@ async def main ():
     print(await search(queries, master, id))
     
     # Test Brave Search
-    print("\n--- Testing Brave Search ---")
+    """ print("\n--- Testing Brave Search ---")
     try:
         brave_results = await brave_search("TREC DRAGUN track", 3)
         print(f"Found {len(brave_results)} Brave search results:")
@@ -166,7 +166,7 @@ async def main ():
             print(f"   Description: {result['description'][:100]}...")
             print()
     except Exception as e:
-        print(f"Brave Search test failed: {e}")
+        print(f"Brave Search test failed: {e}") """
 
 async def test_brave_search():
     """Test function specifically for Brave Search API"""
