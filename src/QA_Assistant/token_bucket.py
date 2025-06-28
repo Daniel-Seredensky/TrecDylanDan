@@ -77,3 +77,10 @@ class AsyncTokenBucket:
         finally:
             # Nothing to do – the reservation naturally expires after <window>.
             pass
+
+    async def credit(self, weight: int) -> None:
+        """Return *weight* units immediately to the current window."""
+        if weight <= 0:
+            return
+        async with self._lock:          # (lock is an `asyncio.Lock`; use `async with` if you prefer)
+            self._in_window = max(0, self._in_window - weight)

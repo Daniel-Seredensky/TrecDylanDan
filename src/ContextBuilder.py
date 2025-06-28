@@ -15,9 +15,14 @@ from dotenv import load_dotenv        # pip install python‑dotenv
 from openai import AsyncAzureOpenAI   # pip install openai
 
 # ── local project ────────────────────────────────────────────────────────────
+from src.QA_Assistant.rate_limits import (
+    openai_req_limiter,
+    _global_tok_limiter,
+    cohere_rerank_limiter
+)
+from src.QA_Assistant.bucket_monitor import BucketMonitor
 from src.QA_Assistant.Assistant import get_or_create_assistant
 from src.QA_Assistant.QuestionEval import assess_question
-from src.ContextBuilder import main as __main
 
 # ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
@@ -115,20 +120,24 @@ async def _main():
             max_retries    = 3,
         )
     try: 
+        bucket_path = os.getenv("BUCKET_USAGE_PATH")
+        bm = BucketMonitor(
+            openai_req_bucket= openai_req_limiter,
+            openai_tok_bucket= openai_tok_limiter,
+            cohere_req_bucket= cohere_rerank_limiter,
+            csv_path= f"{bucket_path}/bucket_usage.csv"
+        )
+        await bm.start()
         proctor = await ContextProctor (template_path= questions_template, client= client, document= doc)
         await proctor.create_context()
     except:
         traceback.print_exc()
     finally:
         await client.close()
+        await bm.stop()
 
 def main():
     asyncio.run(_main())
 
 if __name__ == "__main__":
     main()
-
-
-
-    
-    

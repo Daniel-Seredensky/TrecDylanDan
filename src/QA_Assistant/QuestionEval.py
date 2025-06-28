@@ -3,10 +3,9 @@ import json
 import re
 import asyncio
 from enum import Enum
-from typing import Dict, Any, Optional, Callable, List, Union
+from typing import Dict, Any, Optional, Callable, List
 from uuid import uuid4
 from openai.types.beta.threads import Message, MessageContent
-import traceback
 
 
 from asyncinit import asyncinit
@@ -15,6 +14,8 @@ from openai import AsyncAzureOpenAI
 
 from src.QA_Assistant.Searcher import search
 from src.QA_Assistant.DocSelect import select_documents
+from src.QA_Assistant.rate_limits import gated_openai_stream, refund_tokens,_get_token_buckets
+
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Constants & enums
@@ -36,20 +37,27 @@ class QuestionAssessmentAgent:
     MAX_TOOL_ROUNDS: int = 15  # guard against infinite tool chains
     NOTEPAD_RE   = re.compile(r"<notepad>(.*?)</notepad>", re.S)
     SUMMARY_RE   = re.compile(r"<summary>(.*?)</summary>", re.S)
+    FINAL_PROMPT = "".join([
+                "Max iterations or an unexpected error stopped the run.\n\n",
+                "Compose **one final assistant message** and then **stop**.\n\n",
+                "• Briefly (1–3 bullets) explain what you tried and why it was insufficient.  \n",
+                "• Note what additional evidence or queries would likely resolve the question.\n",
+                "Provide your answer with the same jsonic format as the other answers placing your description in the answer field. Make sure to put citations in the citations field if there are any."
+            ])
 
     async def __init__(
         self,
         question: str,
-        document: Dict[str, Any],
         *,
         client: AsyncAzureOpenAI,
         assistant_id: Optional[str] = None,
     ) -> None:
         # Basic fields
         self.question = question
-        self.document = document
         self.status: QAStatus = QAStatus.NO_ANSWER
         self.full_answer_status: str | None = None
+        self.history: list[dict[str, str]] = []   # running chat log
+
 
         # Each agent run gets its own temp directory for search artefacts
         self.agent_id = uuid4()
@@ -91,115 +99,124 @@ class QuestionAssessmentAgent:
     # ────────────────────────────────────────────────────────────────────────
     async def run(self) -> Dict[str, Any]:
         """
-        Keep launching new runs on the same thread until
-
-        • the assistant sets "finished": true   → QAStatus.FINISHED
-        • or we exceed MAX_TOOL_ROUNDS          → fallback summary
+        Same control‑flow, but `context_tokens` now tracks the entire
+        message history that is resident in the thread at each step.
         """
 
-        # 0.  Seed message (sent exactly once) ---------------------------------
-        seed = (
-            "This is the reference document the questions are based upon:\n"
-            + json.dumps(self.document, ensure_ascii=False) + "\n\n"
-            "The questions you must answer:\n" + self.question + "\n\n"
-            "Work efficiently and accurately. Call `search` and "
-            "`document_selection` as needed; stop only when you are fully confident "
-            'and set `"finished": true` in your <answer> block.'
-        )
-        await self.client.beta.threads.messages.create(
-            thread_id=self.thread.id, role="user", content=seed
-        )
+        # 0️⃣  Initialise thread and token mirror ---------------------------------
+        await self._init_thread()
+        print("Thread seeded")
 
-        tool_calls_so_far = 0
+        tool_calls_so_far   = 0
+        first_run           = True
+        final_prompt_sent   = False
 
-        # 1.  MAIN LOOP – one Assistant *run* per turn -------------------------
-        try:
-            while self.status != QAStatus.FINISHED:
+        while True:
+            # Exit conditions -----------------------------------------------------
+            if self.status == QAStatus.FINISHED or final_prompt_sent and not first_run:
+                break
+            if tool_calls_so_far >= self.MAX_TOOL_ROUNDS and not final_prompt_sent:
+                # Post the fall‑back prompt → add to context, then loop again
+                await self._force_final_prompt()
+                final_prompt_sent = True
+                first_run = False
+                continue
 
-                if tool_calls_so_far >= self.MAX_TOOL_ROUNDS:
-                    await self._force_final_prompt()
-                    break  # exit while loop
-
-                # ── 1a. start a streaming run
-                stream = await self.client.beta.threads.runs.create(
-                    thread_id=self.thread.id,
-                    assistant_id=self.assistant_id,
-                    stream=True,
-                )
-                self.run_id = None
-
-                # ── 1b. consume SSE events for this run
-                while True:
+            # Spin a streamed run -------------------------------------------------
+            print("Starting new run")
+            stream_cm = gated_openai_stream(
+                self.assistant_id,
+                self.client.beta.threads.runs.create,
+                thread_id=self.thread.id,
+                max_tokens=1500,
+                context_tokens=self._serialise_history(),
+                stream=True,
+            )
+            first_run = False
+            while stream_cm:
+                async with stream_cm as (stream, reserved_tokens):
                     async for event in stream:
-                        e = getattr(event, "event", None)
-
-                        # remember run‑id once
-                        if self.run_id is None and hasattr(event.data, "id"):
+                        ev = getattr(event, "event", None)
+                        if getattr(event.data, "id", None):
                             self.run_id = event.data.id
 
-                        # assistant message completed
-                        if e == "thread.message.completed" and event.data.role == "assistant":
+                        # Assistant message finished ---------------------------------
+                        if ev == "thread.message.completed" and event.data.role == "assistant":
+                            print("Single message complete")
                             content = self._as_text(event.data.content)
                             async with aiofiles.open(self.convo_path, "a") as f:
                                 await f.write(content + "\n---\n")
                             self._update_status(event.data)
+                            # assistant message is already stored by the service,
+                            # so add it to our mirror
+                            self._record("assistant",content)
 
-                        # tool call(s) required
-                        if e == "thread.run.requires_action":
+                        # Tool calls --------------------------------------------------
+                        elif ev == "thread.run.requires_action":
+                            print("Assistant requires tools")
+                            # ── 2. dispatch tool calls ──
                             calls   = event.data.required_action.submit_tool_outputs.tool_calls
-                            outputs = await asyncio.gather(*[self._dispatch_tool(c) for c in calls])
-
+                            for c in calls:
+                                # The platform serialises each call as JSON with name & arguments:
+                                fn_call_msg = json.dumps(
+                                    {"name": c.function.name, "arguments": json.loads(c.function.arguments)}
+                                )
+                                self._record("assistant", fn_call_msg)
+                            outputs = await asyncio.gather(*(self._dispatch_tool(c) for c in calls))
                             tool_calls_so_far += len(calls)
 
-                            # continue streaming after tool outputs
-                            stream = await self.client.beta.threads.runs.submit_tool_outputs(
-                                thread_id=self.thread.id,
+                            # append a clipped stringified blob of the tool outputs to the
+                            # running `context_tokens` estimate
+                            outputs_blob     = "\n".join(json.dumps(o) for o in outputs)
+                            self._record ("tool",outputs_blob)
+
+                            # ── 3. chain into a submit_tool_outputs stream ──
+                            
+                            stream_cm = gated_openai_stream(
+                                self.assistant_id,
+                                self.client.beta.threads.runs.submit_tool_outputs,
                                 run_id=event.data.id,
+                                thread_id=self.thread.id,
                                 tool_outputs=outputs,
+                                max_tokens=0,
+                                context_tokens=self._serialise_history(),
+                                old_reserve=reserved_tokens,
                                 stream=True,
                             )
-                            break  # restart inner async‑for with new iterator
+                            break  # re‑enter with the new stream
 
-                        # run finished normally
-                        if e == "thread.run.completed":
-                            self.wipe_thread(event= event) # wipe the thread and replace it with Assistant summary
-                            break  # leave inner async‑for
+                        # Run completed normally --------------------------------------
+                        elif ev == "thread.run.completed":
+                            usage  = getattr(event.data, "usage", None)
+                            actual = getattr(usage, "total_tokens", None) or 0
+                            bucket, _ = _get_token_buckets(self.assistant_id)
+                            await refund_tokens(self.assistant_id, actual, max(reserved_tokens,bucket._in_window))
+                            print("-------------------------------------")
+                            print(f"Total tokens used in the run: {usage.total_tokens}")
+                            print(f"Prompt tokens: {usage.prompt_tokens}")
+                            print(f"Completion tokens: {usage.completion_tokens}")
+                            print(f"total tokens reserved for run: {reserved_tokens}")
+                            print("-------------------------------------")
 
-                        # run ended abnormally
-                        if e.startswith("thread.run.") and getattr(event.data, "status", "") in {
+                            # Compact thread → new summary replaces everything else
+                            if not final_prompt_sent:
+                                await self._reset_thread_with_summary(
+                                    seed=self.summary or ""
+                                )
+                            stream_cm = None
+                            break
+
+                        # Aborted run --------------------------------------------------
+                        elif ev.startswith("thread.run.") and getattr(event.data, "status", "") in {
                             "failed", "cancelled", "expired", "incomplete"
                         }:
+                            await refund_tokens(self.assistant_id, 0, reserved_tokens)
                             return {
                                 "status": self.status.value,
                                 "content": self.full_answer_status,
                             }
-                    else:
-                        break  # iterator exhausted unexpectedly
 
-                    # inner while restart logic
-                    if self.status == QAStatus.FINISHED:
-                        break
-
-                # 1c. if not finished, poke assistant to continue
-                if self.status != QAStatus.FINISHED and tool_calls_so_far < self.MAX_TOOL_ROUNDS:
-                    await self.client.beta.threads.messages.create(
-                        thread_id=self.thread.id,
-                        role="assistant",
-                        content=f"# Continue\nYour previous summary: \n{self.summary}\n\n Your previous answer \n\n {self.full_answer_status}",
-                    )
-
-        except Exception:
-            traceback.print_exc()
-            return {
-                "status": self.status.value,
-                "content": self.full_answer_status,
-            }
-
-        # 2.  DONE -------------------------------------------------------------
-        return {
-            "status": self.status.value,
-            "content": self.full_answer_status,
-        }
+        return {"status": self.status.value, "content": self.full_answer_status}
 
     # ────────────────────────────────────────────────────────────────────────
     # Tool dispatch helper
@@ -212,14 +229,14 @@ class QuestionAssessmentAgent:
             args["agentId"] = str(self.agent_id)  # pass search‑scoped ID
         try: 
             result = await self.LOCAL_FUNCTIONS[fn_name](**args)
-            payload = json.dumps(result)[:5120]
+            payload = json.dumps(result)[:2500]
             async with aiofiles.open(self.tools_path, "a") as f:
                 await f.write(
                     json.dumps(
                         {
                             "tool": fn_name,
                             "args": args,
-                            "result": result,
+                            "result": payload,
                         },
                         ensure_ascii=False,
                     )
@@ -249,14 +266,9 @@ class QuestionAssessmentAgent:
         await self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
             role="user",
-            content=(
-                "Max iterations or an unexpected error stopped the run.\n\n"
-                "Compose **one final assistant message** and then **stop**.\n\n"
-                "• Briefly (1–3 bullets) explain what you tried and why it was insufficient.  \n"
-                "• Note what additional evidence or queries would likely resolve the question.\n"
-                "Provide your answer with the same jsonic format as the other answers placing your description in the answer field. Make sure to put citations in the citations field if there are any."
-            ),
+            content=self.FINAL_PROMPT,
         )
+        self.record("user",self.FINAL_PROMPT)
 
     def _update_status(self, assistant_msg: Message) -> None:
         """Extract JSON inside <answer>…</answer> and update status flags."""
@@ -270,7 +282,8 @@ class QuestionAssessmentAgent:
                         if '"finished": true' in payload
                         else QAStatus.PARTIAL_ANSWER)
 
-    def _as_text(self,blocks: List[MessageContent]) -> str:
+    @staticmethod
+    def _as_text(blocks: List[MessageContent]) -> str:
         """
         v2 `Message.content` may be a string (rare) or a list of MessageContent objects.
         Concatenate **only the text blocks** into one string.
@@ -289,20 +302,77 @@ class QuestionAssessmentAgent:
         await self.client.beta.threads.runs.cancel(
                         thread_id=self.thread.id, run_id=self.run_id
                     )
-    async def wipe_thread(self,event):
-        await self.client.beta.threads.messages.delete(
+
+    async def _reset_thread_with_summary(self, seed: str) -> None:
+        """
+        Blow away every message in `thread_id`, then add a single user message
+        containing `seed`.
+        """
+        # 1) Collect *all* message ids (pagination‑safe).
+        cursor: Optional[str] = None
+        msg_ids = []
+        content = f"# Continue your work \n Seed:{seed} \n previous answer {self.full_answer_status}"
+        keep = await self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
-            message_id=event.data.id,
+            role="user",
+            content=content
         )
+        keep_id = keep.id
+
+        while True:
+            page = await self.client.beta.threads.messages.list(
+                thread_id=self.thread.id,
+                order="desc",
+                after=cursor,      # ← first loop: None, later: previous .after
+                limit=50,
+            )
+            msg_ids.extend(m.id for m in page.data if m.id != keep_id)
+
+            # Use the paginator helpers that *do* exist
+            if not page.has_next_page():
+                break
+            cursor = page.after 
+
+        # 2) Delete them in parallel (or serially if you prefer).
+        await asyncio.gather(*(
+            self.client.beta.threads.messages.delete(
+                thread_id=self.thread.id,
+                message_id=m_id
+            ) for m_id in msg_ids if m_id != keep_id
+        ))
+
+        await self._wait_until_compacted()
+        self.history = []
+        self._record("user",content)
+
+        print (f"Deleted {len(msg_ids) -1 if keep_id in msg_ids else len(msg_ids)} messages")
 
     def _harvest_summary(self, assistant_msg):
         """Pull the <summary>…</summary> text out of the latest notepad."""
-        m_notepad = self.NOTEPAD_RE.search(self._as_text(assistant_msg.content))
+        m_notepad = self.NOTEPAD_RE.search(assistant_msg)
         if not m_notepad:
             return None
 
         m_sum = self.SUMMARY_RE.search(m_notepad.group(1))
-        return m_sum.group(1).strip() if m_sum else None
+        return m_sum.group(1).strip() if m_sum else None   
+    
+    async def _wait_until_compacted(self, *, poll=0.3, timeout=5.0) -> None:
+        end = asyncio.get_event_loop().time() + timeout
+        while True:
+            page = await self.client.beta.threads.messages.list(
+                thread_id=self.thread.id,
+                order="desc",     # newest first
+                limit=1           # ask for exactly one msg
+            )
+
+            # If the backend says there’s no “next page”, you’re down to ≤ 1 message.
+            if not page.has_next_page():
+                return            # ✅ compacted (the current page holds your keep)
+
+            if asyncio.get_event_loop().time() >= end:
+                raise TimeoutError("Thread compaction didn’t finish in time")
+
+            await asyncio.sleep(poll)
         
     # Clean‑up – remove temp search directory ---------------------------------
     def close(self) -> None:
@@ -312,13 +382,39 @@ class QuestionAssessmentAgent:
             # directory non‑empty or other I/O error – ignore for now
             pass
 
+    async def _init_thread(self):
+        seed = ("\n\nThe questions you must answer:\n"
+                + self.question
+                + "\n\nWork efficiently and accurately. "
+                + "Use the first round to create a plan + selective memory put it in summary wrappers, then mark as complete"
+        )
+        seed_msg = await self.client.beta.threads.messages.create(
+            thread_id=self.thread.id, role="user", content=seed
+        )
+        self._record("user",seed)
+        
+    
+    def _record(self, role: str, content: str) -> None:
+        """Append a message to the local history buffer."""
+        self.history.append({"role": role, "content": content})
+
+    def _serialise_history(self) -> str:
+        """
+        Convert history to the exact tokenised form:
+          <|role|>\n<content>\n … <|assistant|>
+        API automatically adds the trailing assistant tag, so we include it
+        here for an accurate prompt‑token mirror.
+        """
+        return "".join(
+            f"<|{m['role']}|>\n{m['content']}\n" for m in self.history
+        ) + "<|assistant|>"
+
 # ────────────────────────────────────────────────────────────────────────────────
 # Convenience functional wrapper
 # ────────────────────────────────────────────────────────────────────────────────
 async def assess_question(
     *,
     question: str,
-    document: Dict[str, Any],
     client: AsyncAzureOpenAI,
     assistant_id: str,
 ) -> Dict[str, Any]:
@@ -327,7 +423,6 @@ async def assess_question(
     """One‑shot helper for callers that don’t want to manage the class."""
     agent = await QuestionAssessmentAgent(
         question=question,
-        document=document,
         client=client,
         assistant_id=assistant_id,
     )
@@ -335,6 +430,6 @@ async def assess_question(
         result = await agent.run()
         return result
     except Exception as e:
-        agent.cancel_run()
-        traceback.print_exc()
+        print(e.with_traceback())
+        if agent.run_id: await agent.cancel_run()
     

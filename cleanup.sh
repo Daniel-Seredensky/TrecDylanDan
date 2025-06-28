@@ -9,8 +9,7 @@
 #
 set -euo pipefail
 
-ENDPOINT=
-KEY=
+
 API_VER="2025-04-01-preview"   
 
 page="${ENDPOINT}/openai/threads?api-version=${API_VER}"

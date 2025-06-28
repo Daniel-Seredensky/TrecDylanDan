@@ -17,8 +17,9 @@ from  pathlib import Path
 from functools import partial
 from dotenv import load_dotenv; load_dotenv()
 from typing import List
+from uuid import uuid4
 
-from rate_limits import gated_cohere_rerank_call
+from src.QA_Assistant.rate_limits import gated_cohere_rerank_call
 
 
 
@@ -27,7 +28,7 @@ async def search(queries: List[str], master_query, agentId) -> List[dict]:
     Perform full search pipeline
     """
     results = os.getenv("BM25_RESULTS_PATH")
-    path = Path(f"{results}/{agentId}/results.jsonl")
+    path = Path(f"{results}/{agentId}/results-{uuid4()}.jsonl")
     await run_bm25_search(queries, path)
     return await rerank_jsonl(path, master_query)
 
@@ -45,8 +46,8 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
-        stdout=None,   # capture if you need it; else use None|DEVNULL
-        stderr=None
+        stdout=asyncio.subprocess.DEVNULL,   # capture if you need it; else use None|DEVNULL
+        stderr=asyncio.subprocess.DEVNULL
     )
 
     try:
@@ -94,10 +95,10 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         "model":     "rerank-v3.5",       # or whichever v2 model you prefer
         "query":     master_query,
         "documents": segments,
-        "top_n":     15
+        "top_n":     75
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=80.0) as client:
         cohere_call = partial(                      # bound fn with URL pre‑filled
             client.post,
             "https://api.cohere.com/v2/rerank"
@@ -115,7 +116,7 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         body.get("results", []),
         key=lambda x: x["relevance_score"],
         reverse=True
-    )[:15] # 15 right now for testing
+    )[:5] # 15 right now for testing
 
     # 4) Build output list with only the requested metadata
     out_list = []
