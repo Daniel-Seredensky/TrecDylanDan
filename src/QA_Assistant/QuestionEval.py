@@ -58,7 +58,6 @@ class QuestionAssessmentAgent:
         self.full_answer_status: str | None = None
         self.history: list[dict[str, str]] = []   # running chat log
 
-
         # Each agent run gets its own temp directory for search artefacts
         self.agent_id = uuid4()
         self.results_path: str = os.path.join(os.getenv("BM25_RESULTS_PATH"), f"{self.agent_id}")
