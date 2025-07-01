@@ -2,22 +2,33 @@
 Search module for the Information Retrieval project.
 """
 
-from typing import List
 import asyncio
-from dotenv import load_dotenv; load_dotenv()
-import os
 import aiofiles
 import json
 from  pathlib import Path
 import aiohttp
 import httpx
+import httpx
+
+import json 
+import os
+
+from  pathlib import Path
+from functools import partial
+from dotenv import load_dotenv; load_dotenv()
+from typing import List
+from uuid import uuid4
+
+from src.QA_Assistant.rate_limits import gated_cohere_rerank_call
+
+
 
 async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
     Perform full search pipeline
     """
     results = os.getenv("BM25_RESULTS_PATH")
-    path = Path(f"{results}/{agentId}/results.jsonl")
+    path = Path(f"{results}/{agentId}/results-{uuid4()}.jsonl")
     await run_bm25_search(queries, path)
     return await rerank_jsonl(path, master_query)
 
@@ -31,6 +42,7 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
         *queries,
         str(path)
     ]
+    print(cmd)
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
@@ -86,12 +98,16 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         "model":     "rerank-v3.5",       # or whichever v2 model you prefer
         "query":     master_query,
         "documents": segments,
-        "top_n":     15
+        "top_n":     75
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(
-            "https://api.cohere.com/v2/rerank",
+    async with httpx.AsyncClient(timeout=80.0) as client:
+        cohere_call = partial(                      # bound fn with URL pre‑filled
+            client.post,
+            "https://api.cohere.com/v2/rerank"
+        )
+        resp = await gated_cohere_rerank_call(     
+            cohere_call,
             headers=headers,
             json=payload
         )
@@ -103,7 +119,7 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         body.get("results", []),
         key=lambda x: x["relevance_score"],
         reverse=True
-    )[:15] # 15 right now for testing
+    )[:5] # 15 right now for testing
 
     # 4) Build output list with only the requested metadata
     out_list = []
@@ -144,7 +160,7 @@ async def main ():
     print(await search(queries, master, id))
     
     # Test Brave Search
-    print("\n--- Testing Brave Search ---")
+    """ print("\n--- Testing Brave Search ---")
     try:
         brave_results = await brave_search("TREC DRAGUN track", 3)
         print(f"Found {len(brave_results)} Brave search results:")
@@ -154,7 +170,7 @@ async def main ():
             print(f"   Description: {result['description'][:100]}...")
             print()
     except Exception as e:
-        print(f"Brave Search test failed: {e}")
+        print(f"Brave Search test failed: {e}") """
 
 async def test_brave_search():
     """Test function specifically for Brave Search API"""

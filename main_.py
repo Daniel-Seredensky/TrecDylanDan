@@ -4,41 +4,45 @@ import traceback
 
 import os
 import asyncio
+import json
 
-from src.QA_Assistant.DocSelect import select_documents
-from src.QA_Assistant.Assistant import get_or_create_assistant
-from src.QA_Assistant.QuestionEval import assess_question
-from pathlib import Path
+from src.QA_Assistant.bucket_monitor import BucketMonitor
+from src.QA_Assistant.base import test
 
 
 async def _main():
-    load_dotenv(dotenv_path=Path(".env"), override= True)
-    api_key        = os.getenv("AZURE_OPENAI_KEY")
-    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    api_version    = os.getenv("AZURE_API_VERSION")
-    print(api_key,azure_endpoint,api_version)
+    load_dotenv(override=True)
+    questions = "\n".join([json.dumps(q) for q in [
+            {
+            "question": "Summarize the historical context and significance of the Nord Stream 2 pipeline project.",
+            "doc_context": "The text notes the pipeline is \"controversial,\" aims to bypass Ukraine, and that U.S.–German disputes date back to the Siberian pipeline crisis of the 1980s. It references unchanged sanctions since 2014 but gives no timeline of planning, financing consortium, construction milestones, or previous legal challenges—information needed for a full historical summary."
+            },
+            {
+            "question": "Describe the historical context of the Nord Stream 2 project and why it is considered controversial.",
+            "doc_context": "The article brands Nord Stream 2 controversial due to security fears and vague safeguards, citing Russia’s potential energy coercion and Ukraine’s vulnerabilities. It does not cover earlier controversies such as EU antitrust debates, environmental objections, or the pipeline’s origin alongside Nord Stream 1, leaving historical context incomplete."
+            },
+            {
+            "question": "Assess whether the article provides sufficient context about the geopolitical implications of Nord Stream 2 for U.S.-Russia and EU-Russia relations.",
+            "doc_context": "The piece discusses U.S.–Germany tensions and references sanctions but gives limited detail on broader U.S.–Russia or EU‑Russia energy dynamics, NATO considerations, or prior gas disputes. Additional sources are required for a comprehensive assessment."
+            }
+        ]])
+    client = AsyncAzureOpenAI(
+        api_key=os.getenv("AZURE_OPENAI_KEY"),
+        base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version="preview",
+        timeout=60.5,
+        max_retries=3,
+    )
     try:
-        doc = "'Kyle Rittenhouse (Kenosha Shooter) Bio, Age, Mother, Shooting, Arrest | Meforworld\nKyle Rittenhouse (Kenosha Shooter) Bio, Age, Mother, Shooting, Arrest\nKyle Rittenhouse is a 17 years old teen from Kenosha Wisconsin who was arrested and charged with killing two people during protests against the shooting of Jacob Blake. BY Admin\nKyle Rittenhouse Biography\nKyle Rittenhouse is a 17 years old teen from Kenosha Wisconsin who was arrested and charged with killing two people during protests against the shooting of Jacob Blake. Rittenhouse is said to have attended Lakes Community High School for a semester in the 2017-18 school year, according to Jim McKay, the superintendent of the school district. According to department letters, he also participated in cadet programs with both the Antioch Fire Department and the Grayslake Police Department. Kyle Rittenhouse Age\nRittenhouse is 17 years old as of 2020. Kyle Rittenhouse Mother\nAccording to the Washingtonpost, Rittenhouse is the son of Wendy Rittenhouse, a single mom and nurse’s assistant. He and his mom lived in an apartment complex beside a park in Antioch. Kyle Rittenhouse Photo\nKyle Rittenhouse Kenosha Shooting\nOn the night of August 25, 2020, Rittenhouse is alleged to have shot three protesters, two of whom later died. Police were alerted by onlookers that Rittenhouse, who is underage was walking around the street with a semiautomatic rifle slung around his neck. The two protesters who night that night were 26-year-old from Silver Lake, Wisconsin, and a 36-year-old from Kenosha. Governor’s Statement / Governor Tony Evers’ Statement\n“My heart breaks for the families and loved ones of the two individuals who lost their lives and the individual who was injured last night in Kenosha. We as a state are mourning this tragedy.” He went on to call the protests in Kenosha a reflection of the “pain, anguish and exhaustion of Black people in our state and country.” Kyle Rittenhouse Arrest\nRittenhouse was arrested on August 26, 2020, across the border in Antioch, Ill. As of the day he was arrested, Rittenhouse was being held without bond in Lake County. We will provide more details as the story develops. Post navigation\nPrevious: Previous post: Shemar Moore Bio, Age, Height, Parents, Siblings, Wife, Soul Train, Net Worth, Movies\nNext: Next post: Carolyn Boseman (Chadwick Boseman’s Mother) Bio, Age, Husband, Son’s Death, Net Worth\nCategories: Famous People in USA '"
-        questions = "Is this article accurate?"
-        client = AsyncAzureOpenAI(                       # or alias as shown above
-            api_key        = os.getenv("AZURE_OPENAI_KEY"),
-            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"),
-            api_version    = os.getenv("AZURE_API_VERSION"),
-            timeout        = 30.0,
-            max_retries    = 3,
-        )
-        assistant = await get_or_create_assistant(client)
-        s = await assess_question(question= questions, document= doc, client= client, assistant_id= assistant)
-        print(s)
-    except Exception as e:
-        print (traceback.print_exc())
+        await test(client,questions)
     finally:
         await client.close()
-
-def main():
+if __name__ == "__main__":
     asyncio.run(_main())
 
-if __name__ == "__main__":
-    main()
+    
+    
+        
+
 
         

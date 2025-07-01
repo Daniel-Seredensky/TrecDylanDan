@@ -41,14 +41,7 @@ import java.util.concurrent.Future;
 public class Searcher {
 
     // ---------------- configuration ----------------
-    private static final Path INDEX_PATH;
-    static {
-        String indexPath = System.getenv("INDEX_PATH");
-        if (indexPath == null) {
-            throw new RuntimeException("INDEX_PATH environment variable is not set");
-        }
-        INDEX_PATH = Paths.get(indexPath);
-    }
+    private static final Path   INDEX_PATH      = Paths.get("/Volumes/X9 Pro/MarcoIndex");
     private static final int    TOP_N_PER_QUERY = 5000;
     private static final int    FINAL_N         = 750;          // ← only 75 docs now
     private static final double RRF_K           = 60.0;
