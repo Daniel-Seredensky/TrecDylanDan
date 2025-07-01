@@ -21,8 +21,8 @@ from src.QA_Assistant.rate_limits import (
     cohere_rerank_limiter
 )
 from src.QA_Assistant.bucket_monitor import BucketMonitor
-from src.QA_Assistant.Assistant import get_or_create_assistant
-from src.QA_Assistant.QuestionEval import assess_question
+from QA_Assistant.AssistantsAPI.Assistant import get_or_create_assistant
+from QA_Assistant.AssistantsAPI.QuestionEval import assess_question
 
 # ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()

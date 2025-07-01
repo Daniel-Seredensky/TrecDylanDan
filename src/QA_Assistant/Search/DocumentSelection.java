@@ -28,7 +28,7 @@ import java.util.List;
 public final class DocumentSelection {
 
     // ----------------- config -----------------
-    private static final Path INDEX_PATH   = Paths.get("./MarcoIndex");
+    private static final Path INDEX_PATH   = Paths.get("/Volumes/X9 Pro/MarcoIndex");
     private static final int  MAX_SEG_IDS  = 4;
     private static final ObjectMapper JSON = new ObjectMapper();
 

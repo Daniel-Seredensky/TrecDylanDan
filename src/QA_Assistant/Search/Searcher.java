@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
 public class Searcher {
 
     // ---------------- configuration ----------------
-    private static final Path   INDEX_PATH      = Paths.get("./MarcoIndex");
+    private static final Path   INDEX_PATH      = Paths.get("/Volumes/X9 Pro/MarcoIndex");
     private static final int    TOP_N_PER_QUERY = 5000;
     private static final int    FINAL_N         = 750;          // ← only 75 docs now
     private static final double RRF_K           = 60.0;
