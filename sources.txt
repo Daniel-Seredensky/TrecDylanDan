@@ -1,0 +1,2 @@
+src/QA_Assistant/Search/Searcher.java
+src/QA_Assistant/Search/DocumentSelection.java

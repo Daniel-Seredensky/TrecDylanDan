@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +41,14 @@ import java.util.concurrent.Future;
 public class Searcher {
 
     // ---------------- configuration ----------------
-    private static final Path   INDEX_PATH      = Paths.get("./MarcoIndex");
+    private static final Path INDEX_PATH;
+    static {
+        String indexPath = System.getenv("INDEX_PATH");
+        if (indexPath == null) {
+            throw new RuntimeException("INDEX_PATH environment variable is not set");
+        }
+        INDEX_PATH = Paths.get(indexPath);
+    }
     private static final int    TOP_N_PER_QUERY = 5000;
     private static final int    FINAL_N         = 750;          // ← only 75 docs now
     private static final double RRF_K           = 60.0;
@@ -65,7 +73,7 @@ public class Searcher {
             QUERY_ANALYZER =
                 CustomAnalyzer.builder(Paths.get("src/QA_Assistant/Search/synonyms"))
                     .withTokenizer("standard")                  // StandardTokenizer
-                    .addTokenFilter("englishPossessive")        // ’s →   (keeps positions)
+                    .addTokenFilter("englishPossessive")        // 's →   (keeps positions)
                     .addTokenFilter("lowercase")
                     .addTokenFilter("stop", stopArgs)           // same default EN stop set
                     .addTokenFilter("synonymGraph", synArgs)    // Synonym expansion
@@ -141,7 +149,7 @@ public class Searcher {
             TopDocs td  = searcher.search(query, TOP_N_PER_QUERY);
 
             /* ensure only the *highest‑ranked* segment per rootId
-               influences this query’s scoring */
+               influences this query's scoring */
             HashSet<String> seenRootIds = new HashSet<>();
 
             for (int rank = 0; rank < td.scoreDocs.length; rank++) {

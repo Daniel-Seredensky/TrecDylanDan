@@ -34,18 +34,21 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
-        stdout=asyncio.subprocess.DEVNULL,   # capture if you need it; else use None|DEVNULL
-        stderr=asyncio.subprocess.DEVNULL
+        stdout=asyncio.subprocess.PIPE,   # capture output for debugging
+        stderr=asyncio.subprocess.PIPE,
+        env=os.environ.copy()  # Pass current environment, including .env vars
     )
 
     try:
-        await asyncio.wait_for(proc.communicate(), timeout=300)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
     except asyncio.TimeoutError:
         proc.kill()
         await proc.wait()
         raise RuntimeError("BM25 search timed out after 5 minutes")
 
     if proc.returncode:
+        print("Java process stdout:\n", stdout.decode())
+        print("Java process stderr:\n", stderr.decode())
         raise RuntimeError(f"Java search failed [{proc.returncode}]: ")
 
 async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:

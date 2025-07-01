@@ -24,11 +24,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public final class DocumentSelection {
 
     // ----------------- config -----------------
-    private static final Path INDEX_PATH   = Paths.get("./MarcoIndex");
+    private static final Path INDEX_PATH = Paths.get(Optional.ofNullable(System.getenv("MARCO_INDEX")).orElse("./MarcoIndex"));
     private static final int  MAX_SEG_IDS  = 4;
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -126,7 +127,7 @@ public final class DocumentSelection {
             int start   = n.path("start_char").asInt(0);
             int end     = n.path("end_char").asInt(text.length() + start);
 
-            if (end <= currentEnd) continue;          // this segment is wholly inside material we’ve kept
+            if (end <= currentEnd) continue;          // this segment is wholly inside material we've kept
 
             int beginInSeg = Math.max(0, currentEnd - start); // skip overlap inside this segment
             if (beginInSeg < text.length()) {
