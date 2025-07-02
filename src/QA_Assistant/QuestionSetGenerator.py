@@ -135,6 +135,19 @@ class AsyncQuestionSetGenerator:
             unanswered.extend(result.get("unanswered", []))
         return {"answered": answered, "unanswered": unanswered}
 
+    async def process_group(self, questions: List[str]) -> Dict[str, Any]:
+        answered = []
+        unanswered = []
+        for i in range(0, len(questions), self.batch_size):
+            batch = questions[i:i+self.batch_size]
+            prompt = self._build_prompt(batch)
+            result = await self._call_openai(prompt)
+            if "error" in result:
+                return result
+            answered.extend(result.get("answered", []))
+            unanswered.extend(result.get("unanswered", []))
+        return {"answered": answered, "unanswered": unanswered}
+
     async def generate(self) -> Dict[str, Any]:
         groups = self.question_template.get("groups", [])
         # Chunk groups into groups_per_call
@@ -192,4 +205,4 @@ if __name__ == "__main__":
     safe_doc_id = doc_id.replace('/', '_').replace('#', '_')
     output_path = f"DerivedData/QuestionSets/{safe_doc_id}.json"
     result = run_question_set_pipeline(doc_id, output_path=output_path)
-    print(f"Wrote question set output to {output_path}") 
+    print(f"Wrote question set output to {output_path}")
