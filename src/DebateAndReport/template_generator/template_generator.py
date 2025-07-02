@@ -47,7 +47,7 @@ def get_document_text(doc_or_segment_id: str, jsonl_path: str) -> str:
 
 def create_question_template(document_id):
     # Get text from document id
-    document_text = get_document_text(document_id, "DebateAndReport/FixedSampleData.jsonl")
+    document_text = get_document_text(document_id, "Debate/FixedSampleData.jsonl")
 
     # Request payload configuration
     payload = {
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     sample_doc_id = "msmarco_v2.1_doc_17_795452723#14_866362073"
     try:
         # Directly test document extraction and print result
-        doc_text = get_document_text(sample_doc_id, "DebateAndReport/FixedSampleData.jsonl")
+        doc_text = get_document_text(sample_doc_id, "Debate/FixedSampleData.jsonl")
         print("[MAIN DEBUG] Full extracted document text (first 500 chars):\n", doc_text[:500], "\n---\n")
         # Now run the question template generator
         questions_json = create_question_template(sample_doc_id)

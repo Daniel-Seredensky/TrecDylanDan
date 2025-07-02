@@ -9,13 +9,13 @@ report_shortener_pipeline_url = "http://127.0.0.1:7860/api/v1/run/05043cdc-403e-
 report_scorer_pipeline_url = "http://127.0.0.1:7860/api/v1/run/3315485d-c0de-46fb-ac03-291563d1e6a1"
 
 # Filepaths
-ARTICLE_PATH = "src/Debate/input/article.txt"
-NOTES_PATH = "src/Debate/input/notes.txt"
+ARTICLE_PATH = "DebateAndReport/input/article.txt"
+NOTES_PATH = "DebateAndReport/input/notes.txt"
 
-DEBATE_LOG_PATH = "src/Debate/output/debate_log.txt"
-REPORT_SCORES_PATH = "src/Debate/output/report_scores.txt"
-REPORT_WITH_DEBATE_PATH = "src/Debate/output/report_with_debate.txt"
-REPORT_WITHOUT_DEBATE_PATH = "src/Debate/output/report_without_debate.txt"
+DEBATE_LOG_PATH = "DebateAndReport/output/debate_log.txt"
+REPORT_SCORES_PATH = "DebateAndReport/output/report_scores.txt"
+REPORT_WITH_DEBATE_PATH = "DebateAndReport/output/report_with_debate.txt"
+REPORT_WITHOUT_DEBATE_PATH = "DebateAndReport/output/report_without_debate.txt"
 
 def send_request(url, payload, headers):
     try:
@@ -50,8 +50,7 @@ def generate_report(use_debate):
     input_text = "Article: " + article + "\n\nNotes: " + notes
 
     if use_debate:
-        input_text += """\n\nHere is the debate on the credibility of the article.
-        Insights from this debate should be your main reference point: """ + debate
+        input_text += """\n\nHere is the debate on the credibility of the article.\n        Insights from this debate should be your main reference point: """ + debate
 
     payload = {
         "input_value": input_text,
@@ -60,7 +59,15 @@ def generate_report(use_debate):
     }
     headers = {"Content-Type": "application/json"}
 
-    report_text = json.loads(send_request(report_pipeline_url, payload, headers).text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"]
+    response = send_request(report_pipeline_url, payload, headers)
+    if response is None:
+        print("Failed to get a response from the report pipeline API.")
+        return
+    try:
+        report_text = json.loads(response.text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"]
+    except Exception as e:
+        print(f"Error parsing report pipeline response: {e}")
+        return
     open(REPORT_WITH_DEBATE_PATH if use_debate else REPORT_WITHOUT_DEBATE_PATH, "w").write(report_text)
 
 def shorten_report(report_path):
@@ -76,7 +83,15 @@ def shorten_report(report_path):
     headers = {"Content-Type": "application/json"}
 
     response = send_request(report_shortener_pipeline_url, payload, headers)
-    open(report_path, "w").write(json.loads(response.text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"])
+    if response is None:
+        print(f"Failed to get a response from the report shortener API for {report_path}.")
+        return
+    try:
+        shortened_text = json.loads(response.text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"]
+    except Exception as e:
+        print(f"Error parsing report shortener response: {e}")
+        return
+    open(report_path, "w").write(shortened_text)
 
 def score_reports(report_path_1, report_path_2):
     report_1 = open(report_path_1, "r").read()

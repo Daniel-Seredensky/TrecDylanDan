@@ -10,7 +10,7 @@ def main():
         format = json.load(open(format_path))
 
         # Load the claim from the bin agent data
-        with open("BinAgent/DerivedData/Result.json", 'r', encoding='utf-8') as f:
+        with open("BinAgent/src/src/DerivedData/Result.json", 'r', encoding='utf-8') as f:
             claim_data = json.load(f)
         claim = claim_data["claim"]
         clueweb_id = claim_data.get("ClueWeb22-ID", "clueweb22-en0024-53-03398")  # fallback if not included

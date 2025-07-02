@@ -2,7 +2,7 @@
 Creates (or re-uses) a single OpenAI Assistant and stores its ID.
 
 • Tool schema is defined once here.
-• The assistant ID is cached in DerivedData/Assistant/AssistantId.txt
+• The assistant ID is cached in src/DerivedData/Assistant/AssistantId.txt
   so the rest of the codebase can load it without re-creating the assistant.
 """
 import os
@@ -15,7 +15,7 @@ from dotenv import load_dotenv; load_dotenv()
 # ────────────────────────────────
 # Config
 # ────────────────────────────────
-ASSISTANT_ID_FILE = "DerivedData/Assistant/AssistantId.txt"
+ASSISTANT_ID_FILE = "src/DerivedData/Assistant/AssistantId.txt"
 
 MODEL             = os.getenv("MODEL_NAME")
 VERSION           = os.getenv("API_VERSION")

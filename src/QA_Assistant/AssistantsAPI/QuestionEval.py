@@ -20,7 +20,7 @@ from src.QA_Assistant.rate_limits import gated_openai_stream, refund_tokens,_get
 # ────────────────────────────────────────────────────────────────────────────────
 # Constants & enums
 # ────────────────────────────────────────────────────────────────────────────────
-ASSISTANT_ID_FILE = "DerivedData/Assistant/AssistantId.txt"
+ASSISTANT_ID_FILE = "src/DerivedData/Assistant/AssistantId.txt"
 
 class QAStatus(Enum):
     NO_ANSWER = "no_answer"

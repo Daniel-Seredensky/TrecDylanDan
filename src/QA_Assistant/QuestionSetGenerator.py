@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import os
 import re
 import sys
@@ -21,13 +21,14 @@ spec.loader.exec_module(template_generator)
 import openai
 
 class AsyncQuestionSetGenerator:
-    def __init__(self, document: str, question_template: Dict[str, Any], model: str = "gpt-4o", batch_size: int = 10, max_concurrent: int = 2):
+    def __init__(self, document: str, question_template: Dict[str, Any], model: str = "gpt-4o", batch_size: int = 10, max_concurrent: int = 2, groups_per_call: int = 2):
         self.document = document
         self.question_template = question_template
         self.model = model or os.getenv("OPENAI_QUESTIONSET_MODEL", "gpt-4o")
         self.client = openai.AsyncOpenAI()
         self.batch_size = batch_size
         self.max_concurrent = max_concurrent
+        self.groups_per_call = groups_per_call
         self.semaphore = asyncio.Semaphore(max_concurrent)
 
     def _build_prompt(self, questions: List[str]) -> str:
@@ -117,11 +118,15 @@ class AsyncQuestionSetGenerator:
             except Exception as e:
                 return {"error": f"OpenAI API call failed: {e}"}
 
-    async def process_group(self, questions: List[str]) -> Dict[str, Any]:
+    async def process_groups(self, groups: List[Dict[str, Any]]) -> Dict[str, Any]:
+        # Combine all questions from the given groups
+        all_questions = []
+        for group in groups:
+            all_questions.extend(group.get("questions", []))
         answered = []
         unanswered = []
-        for i in range(0, len(questions), self.batch_size):
-            batch = questions[i:i+self.batch_size]
+        for i in range(0, len(all_questions), self.batch_size):
+            batch = all_questions[i:i+self.batch_size]
             prompt = self._build_prompt(batch)
             result = await self._call_openai(prompt)
             if "error" in result:
@@ -132,7 +137,9 @@ class AsyncQuestionSetGenerator:
 
     async def generate(self) -> Dict[str, Any]:
         groups = self.question_template.get("groups", [])
-        tasks = [self.process_group(group.get("questions", [])) for group in groups if group.get("questions")]
+        # Chunk groups into groups_per_call
+        group_chunks = [groups[i:i+self.groups_per_call] for i in range(0, len(groups), self.groups_per_call)]
+        tasks = [self.process_groups(chunk) for chunk in group_chunks if chunk]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         answered = []
         unanswered = []
@@ -151,23 +158,38 @@ class AsyncQuestionSetGenerator:
             output["unanswered"] = unanswered
         return output
 
-if __name__ == "__main__":
-    async def main():
-        if len(sys.argv) > 1:
-            doc_id = sys.argv[1]
-        else:
-            doc_id = "msmarco_v2.1_doc_17_795452723#14_866362073"  # Example doc id
-        print(f"Generating question template for doc_id: {doc_id}")
+def run_question_set_pipeline(doc_id: str, output_path: Optional[str] = None) -> dict:
+    """
+    Runs the full question set pipeline for a given doc_id.
+    If output_path is provided, writes the result to that path.
+    Returns the result as a dict.
+    """
+    async def _run():
         question_template_json = template_generator.create_question_template(doc_id)
         if not question_template_json:
-            print("Failed to generate question template.")
-            sys.exit(1)
+            raise RuntimeError("Failed to generate question template.")
         question_template = json.loads(question_template_json)
         document = template_generator.get_document_text(doc_id, "DebateAndReport/FixedSampleData.jsonl")
         generator = AsyncQuestionSetGenerator(document, question_template, max_concurrent=2)
-        output = await generator.generate()
-        output_path = Path("DebateAndReport/output/question_set_output.json")
-        with output_path.open("w", encoding="utf-8") as f:
-            json.dump(output, f, ensure_ascii=False, indent=2)
-        print(f"Wrote question set output to {output_path}")
-    asyncio.run(main()) 
+        try:
+            result = await generator.generate()
+        finally:
+            await generator.client.close()
+        if output_path:
+            output_path_obj = Path(output_path)
+            output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            with output_path_obj.open("w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
+        return result
+    return asyncio.run(_run())
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        doc_id = sys.argv[1]
+    else:
+        doc_id = "msmarco_v2.1_doc_17_795452723#14_866362073"  # Example doc id
+    # Default output to DerivedData/QuestionSets/{doc_id}.json
+    safe_doc_id = doc_id.replace('/', '_').replace('#', '_')
+    output_path = f"DerivedData/QuestionSets/{safe_doc_id}.json"
+    result = run_question_set_pipeline(doc_id, output_path=output_path)
+    print(f"Wrote question set output to {output_path}") 
