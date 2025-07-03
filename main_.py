@@ -3,12 +3,13 @@ from dotenv import load_dotenv
 import traceback
 
 import os
-import asyncio
+import asyncio, aiofiles, uvloop
 import json
 
 from src.QA_Assistant.bucket_monitor import BucketMonitor
-from src.QA_Assistant.base import test
-
+from src.QA_Assistant.question_eval import assess_questions
+from src.QA_Assistant.Searcher import cohere_client
+from src.ContextBuilder import test
 
 async def _main():
     load_dotenv(override=True)
@@ -34,15 +35,33 @@ async def _main():
         max_retries=3,
     )
     try:
-        await test(client,questions)
+        await assess_questions(questions,client=client)
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
     finally:
         await client.close()
+
+async def newTest():
+    load_dotenv()
+    try:
+        async with aiofiles.open(os.getenv("CONTEXT_PATH"), "w") as f:
+            await f.write("")
+        bm = BucketMonitor()
+        await bm.start()
+        client = AsyncAzureOpenAI(
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_version="preview",
+            timeout=60.5,
+            max_retries=3,
+        )
+        await test(client=client)
+    finally: 
+        await bm.stop()
+        await client.close()
+        await cohere_client.aclose()
+
 if __name__ == "__main__":
-    asyncio.run(_main())
-
-    
-    
-        
-
-
-        
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    asyncio.run(newTest())

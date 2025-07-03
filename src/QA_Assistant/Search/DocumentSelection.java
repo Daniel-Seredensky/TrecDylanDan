@@ -67,13 +67,27 @@ public final class DocumentSelection {
 
             if (asSegments) {
                 for (String id : ids) {
-                    ObjectNode n = fetchSegment(id, searcher);
-                    System.out.println(JSON.writeValueAsString(n));
+                    try {
+                        ObjectNode n = fetchSegment(id, searcher);
+                        System.out.println(JSON.writeValueAsString(n));
+
+                    }
+                    catch (IllegalArgumentException e){
+                        System.out.println("Segment ID not found: " + id);
+                    }
                 }
             } else {
-                ObjectNode n = fetchFull(ids.get(0), reader);
-                System.out.println(JSON.writeValueAsString(n));
+                try{
+                    ObjectNode n = fetchFull(ids.get(0), reader);
+                    System.out.println(JSON.writeValueAsString(n));
+                }
+                catch (IllegalArgumentException e){
+                    System.out.println("Document ID not found: " + ids.get(0));
+                }
             }
+        }
+        catch (Exception e) {
+            System.out.println("Error: 1 or more IDs not found.");
         }
     }
 

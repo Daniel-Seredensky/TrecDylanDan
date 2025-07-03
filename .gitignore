@@ -23,6 +23,4 @@ cleanup.txt
 !DerivedData/BinAgent/.gitkeep
 !DerivedData/ContextBuilder/.gitkeep
 
-# Ignore Cursor project file
-.cursorignore
-
+src/test.py

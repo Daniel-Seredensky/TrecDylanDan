@@ -8,7 +8,6 @@ import json
 from  pathlib import Path
 import aiohttp
 import httpx
-import httpx
 
 import json 
 import os
@@ -21,7 +20,7 @@ from uuid import uuid4
 
 from src.QA_Assistant.Rate_limits import gated_cohere_rerank_call
 
-
+cohere_client = httpx.AsyncClient(timeout=80.0) as client
 
 async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
@@ -42,7 +41,6 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
         *queries,
         str(path)
     ]
-    print(cmd)
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
@@ -56,12 +54,11 @@ async def run_bm25_search(queries: list[str], path: Path) -> None:
     except asyncio.TimeoutError:
         proc.kill()
         await proc.wait()
-        raise RuntimeError("BM25 search timed out after 5 minutes")
 
     if proc.returncode:
         print("Java process stdout:\n", stdout.decode())
         print("Java process stderr:\n", stderr.decode())
-        raise RuntimeError(f"Java search failed [{proc.returncode}]: ")
+        return None
 
 async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
     """
@@ -70,10 +67,6 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
     against `master_query`, and returns a list of the top 75 results
     with only 'title', 'url', 'headings', and 'segmentId'.
     """
-    # 0) Load your Cohere key
-    api_key = os.getenv("COHERE_API_KEY")
-    if not api_key:
-        raise ValueError("COHERE_API_KEY not set in environment")
 
     # 1) Read and buffer all segments + metadata
     segments = []
@@ -90,10 +83,6 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
             })
 
     # 2) Call Cohere v2 Rerank endpoint
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type":  "application/json"
-    }
     payload = {
         "model":     "rerank-v3.5",       # or whichever v2 model you prefer
         "query":     master_query,
@@ -101,25 +90,23 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         "top_n":     75
     }
 
-    async with httpx.AsyncClient(timeout=80.0) as client:
-        cohere_call = partial(                      # bound fn with URL pre‑filled
-            client.post,
-            "https://api.cohere.com/v2/rerank"
-        )
-        resp = await gated_cohere_rerank_call(     
-            cohere_call,
-            headers=headers,
-            json=payload
-        )
-        resp.raise_for_status()
-        body = resp.json()
+    cohere_call = partial(                      # bound fn with URL pre‑filled
+        cohere_client.post,
+        "https://api.cohere.com/v2/rerank"
+    )
+    resp = await gated_cohere_rerank_call(     
+        cohere_call,
+        json=payload
+    )
+    resp.raise_for_status()
+    body = resp.json()
 
     # 3) Sort & select the top 75 by relevance_score
     ranked = sorted(
         body.get("results", []),
         key=lambda x: x["relevance_score"],
         reverse=True
-    )[:5] # 15 right now for testing
+    )[:25] 
 
     # 4) Build output list with only the requested metadata
     out_list = []
@@ -152,48 +139,3 @@ async def brave_search(query: str, num_results: int = 3):
                     "description": item.get("description"),
                 })
             return results
-
-async def main ():
-    queries = ["loving words from the bible", "heart felt messages bible"]
-    master = "Looking for loving words from the bible, positive messages that relate to love"
-    id = "test"
-    print(await search(queries, master, id))
-    
-    # Test Brave Search
-    """ print("\n--- Testing Brave Search ---")
-    try:
-        brave_results = await brave_search("TREC DRAGUN track", 3)
-        print(f"Found {len(brave_results)} Brave search results:")
-        for i, result in enumerate(brave_results, 1):
-            print(f"{i}. {result['title']}")
-            print(f"   URL: {result['url']}")
-            print(f"   Description: {result['description'][:100]}...")
-            print()
-    except Exception as e:
-        print(f"Brave Search test failed: {e}") """
-
-async def test_brave_search():
-    """Test function specifically for Brave Search API"""
-    test_queries = [
-        "TREC DRAGUN track",
-        "information retrieval evaluation",
-        "credibility analysis pipeline"
-    ]
-    
-    for query in test_queries:
-        print(f"\n--- Testing query: '{query}' ---")
-        try:
-            results = await brave_search(query, 2)
-            print(f"Found {len(results)} results:")
-            for i, result in enumerate(results, 1):
-                print(f"{i}. {result['title']}")
-                print(f"   URL: {result['url']}")
-                print(f"   Description: {result['description'][:80]}...")
-        except Exception as e:
-            print(f"Error: {e}")
-        print("-" * 50)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-    # Uncomment the line below to run the dedicated Brave Search test
-    # asyncio.run(test_brave_search())

@@ -34,6 +34,4 @@ class LoopStage(Enum):
     
 import json
 
-test = {"foo":"bar","test":1}
-q = json.loads(json.dumps(test))
-print(q["foo"])
+print (LoopStage.PLAN_CALL.name)

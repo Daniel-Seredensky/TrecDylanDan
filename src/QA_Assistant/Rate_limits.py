@@ -16,6 +16,8 @@ from typing import Any, Awaitable, Callable, Dict
 from enum import Enum
 from functools import lru_cache
 import traceback
+from dotenv import load_dotenv
+import os
 
 from openai import AsyncAzureOpenAI
 from openai.types.responses import Response, ResponseUsage
@@ -23,6 +25,8 @@ import tiktoken
 
 from src.QA_Assistant.token_bucket import AsyncTokenBucket
 from src.QA_Assistant.answer_contracts import GLOBAL_FORMAT
+
+load_dotenv()
 
 class LoopStage(Enum):
     """
@@ -69,7 +73,7 @@ GLOBAL_TOK_CAP: int = 200_000     # tokens   / minute (global)
 PERSONAL_TOK_CAP: int = 100_000  # tokens / minute 
 
 # Global Cohere limits
-COHERE_RERANK_CAP: int = 20     # requests / minute (global)
+COHERE_RERANK_CAP: int = 10     # requests / minute (global)
 
 PROMPT_BUFFER = lambda max_out: int(max_out * 0.025) #safety buffer for tokens
 
@@ -85,12 +89,14 @@ global_tok_limiter = AsyncTokenBucket(GLOBAL_TOK_CAP, WINDOW)
 global_req_limiter = AsyncTokenBucket(GLOBAL_REQ_CAP, WINDOW)
 
 # Tokens – lazy‑initialised per‑assistant buckets
-_assistant_tok_limiters: Dict[str, AsyncTokenBucket] = defaultdict(
+assistant_tok_limiters: Dict[str, AsyncTokenBucket] = defaultdict(
     lambda: AsyncTokenBucket(PERSONAL_TOK_CAP, WINDOW)
 )
 
-# Cohere limiter 
-cohere_rerank_limiter = AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW)
+# Cohere limiters
+cohere_bucket1 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY0")]
+cohere_bucket2 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY1")]
+cohere_bucket3 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY2")]
 
 # ───────────────────────────────────────── helpers ───────────────────────────
 
@@ -100,7 +106,7 @@ def _count_tokens(text: str | None) -> int:
 
 def _get_token_buckets(assistant_id: str):
     """Return (personal_bucket, global_bucket,global_req_bucket) for the assistant."""
-    return _assistant_tok_limiters[assistant_id], global_tok_limiter, global_req_limiter
+    return assistant_tok_limiters[assistant_id], global_tok_limiter, global_req_limiter
 
 # ─────────────────────────────────── public wrappers ─────────────────────────
 async def gated_response(
@@ -111,62 +117,70 @@ async def gated_response(
     stage: LoopStage,
     context: str = "",
 ) -> Response:
-    """Throttle *any* OpenAI SDK coroutine with hierarchical token buckets.
-
-    Enforced budgets
-    ----------------
-    • ≤ 50 requests / 60 s **(global)**
-    • ≤ 50 000 tokens  / 60 s **(global)**
-    • ≤ 10 000 tokens  / 60 s **(per‑assistant)**
     """
-    # reformat, get buckets, tally token usage
+    Throttle an OpenAI Responses API call with hierarchical token buckets
+    (per‑assistant + global).  Now uses *event IDs* so refunds target the
+    exact reservation that was made.
+    """
     personal_tok, global_tok, global_req = _get_token_buckets(assistant_id)
-    m = {"role":"user","content":prompt}
-    prompt_tokens = _count_tokens(GLOBAL_FORMAT + context + "".join(f"<|{m['role']}|>\n{m['content']}\n"))
-    reserve = prompt_tokens + stage.value[0]['max_output_tokens'] + PROMPT_BUFFER(prompt_tokens + stage.value[0]['max_output_tokens'])
 
-    if reserve > stage.value[1]: 
+    m = {"role": "user", "content": prompt}
+    prompt_tokens = _count_tokens(
+        GLOBAL_FORMAT + context + f"<|{m['role']}|>\n{m['content']}\n"
+    )
+    reserve = (
+        prompt_tokens
+        + stage.value[0]["max_output_tokens"]
+        + PROMPT_BUFFER(prompt_tokens + stage.value[0]["max_output_tokens"])
+    )
+
+    if reserve > stage.value[1]:
         raise ValueError(
-            f"Single call would consume {reserve:,} tokens which exceeds "
-            f"the per‑assistant cap of {stage.value[1]:,} tokens/min."
+            f"Single call would consume {reserve:,} tokens "
+            f"which exceeds the cap of {stage.value[1]:,}/min."
         )
-    
-    result = None
+
+    result: Response | None = None
+    ids: dict[str, str] = {}
     is_plan_call = stage == LoopStage.PLAN_CALL
+
     try:
         if is_plan_call:
-            # One planner model, planning is outside jurisdiction of per assistant limits
-            async with plan_tok_limiter.acquire(reserve):
-                async with plan_req_limiter.acquire(1):
-                    result: Response =  await client.responses.create(
-                        input = prompt,
-                        **stage.value[0], # stage specific hyperparameters
-                        instructions = GLOBAL_FORMAT
-                    )
+            # Planner uses its own global bucket
+            async with plan_tok_limiter.acquire(reserve) as plan_id, \
+                       plan_req_limiter.acquire(1):
+                ids["plan"] = plan_id
+                result = await client.responses.create(
+                    input=prompt,
+                    **stage.value[0],
+                )
         else:
-            # Reserve request globally; reserve tokens (personal → global)
-            async with global_tok.acquire(reserve):
-                async with personal_tok.acquire(reserve):
-                    async with global_req.acquire(1):
-                        result: Response =  await client.responses.create(
-                            input = prompt,
-                            **stage.value[0], # stage specific hyperparameters
-                            instructions = GLOBAL_FORMAT
-                        )
-    except Exception as e: 
-        traceback.print_exc()
+            # Ordinary call – personal + global buckets
+            async with global_tok.acquire(reserve) as global_id, \
+                       personal_tok.acquire(reserve) as personal_id, \
+                       global_req.acquire(1):
+                ids["global"] = global_id
+                ids["personal"] = personal_id
+                result = await client.responses.create(
+                    input=prompt,
+                    instructions=GLOBAL_FORMAT,
+                    **stage.value[0],
+                )
+    except Exception:
+        # Let the caller handle/log – reservation stays until it ages out
+        raise
 
     if result is None:
         raise ValueError("No response from OpenAI")
-    
-    usage: ResponseUsage = result.usage
-    print(f"This is {"a plan call--crediting to global 4.1 bucket" if is_plan_call else "not a plan call--crediting to 4.1-mini buckets"}")
-    print(f"Reserved tokens: {reserve}\n Actual tokens: {usage.total_tokens}")
-    print(f"Attempting to refund {reserve-usage.total_tokens} tokens, with {personal_tok._in_window if not is_plan_call else plan_tok_limiter._in_window} tokens in bucket")
-    await refund_tokens(assistant_id = assistant_id,
-                        used_tokens = usage.total_tokens,
-                        reserved = reserve,
-                        is_plan_call = is_plan_call)
+
+    # Refund any surplus
+    await refund_tokens(
+        assistant_id=assistant_id,
+        used_tokens=result.usage.total_tokens,
+        reserved=reserve,
+        is_plan_call=is_plan_call,
+        ids=ids,
+    )
     return result
                 
 
@@ -175,20 +189,50 @@ async def gated_cohere_rerank_call(
     send_fn: Callable[..., Awaitable[Any]],
     **kwargs,
 ):
+    bucket = None
+    key = None
+    if cohere_bucket1[0].current_load() == 10:
+        if cohere_bucket2[0].current_load() == 10:
+            bucket,key = cohere_bucket3
+        else:
+            bucket,key = cohere_bucket2
+    else:
+        bucket,key = cohere_bucket1
+            
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type":  "application/json"
+    }
     """Throttle Cohere’s `/rerank` so we issue ≤ 20 calls per minute."""
-    async with cohere_rerank_limiter.acquire(1):
-        return await send_fn(**kwargs)
+    async with bucket.acquire(1):
+        return await send_fn(headers = headers,**kwargs)
 
 # ───────────────────────────────── token refund helper ───────────────────────
 
-async def refund_tokens(assistant_id: str, used_tokens: int, reserved: int, is_plan_call: bool):
-    """Optional: call when you know the *exact* tokens used were < reserved."""
+async def refund_tokens(
+    *,
+    assistant_id: str,
+    used_tokens: int,
+    reserved: int,
+    is_plan_call: bool,
+    ids: dict[str, str],
+) -> None:
+    """
+    Return **(reserved − used)** tokens to the *specific* reservation event(s).
+    If the event has already expired from the sliding window, credit_by_id is
+    a no‑op, so we never over‑refund.
+    """
     diff = reserved - used_tokens
     if diff <= 0:
+        return  # nothing to refund
+
+    if is_plan_call:
+        # Planner bucket only
+        await plan_tok_limiter.credit_by_id(ids["plan"], diff)
         return
-    personal_tok, global_tok,_ = _get_token_buckets(assistant_id)
-    dif_personal = min(diff, personal_tok._in_window) if not is_plan_call else min(diff, plan_tok_limiter._in_window)
-    dif_global = min(diff, global_tok._in_window) if not is_plan_call else 0
-    # Return surplus to both buckets.
-    await personal_tok.credit(dif_personal) if not is_plan_call else await plan_tok_limiter.credit(dif_personal)
-    await global_tok.credit(dif_global)
+
+    personal_tok, global_tok, _ = _get_token_buckets(assistant_id)
+
+    # Refund exactly to the caller's own events
+    await personal_tok.credit_by_id(ids["personal"], diff)
+    await global_tok.credit_by_id(ids["global"], diff)

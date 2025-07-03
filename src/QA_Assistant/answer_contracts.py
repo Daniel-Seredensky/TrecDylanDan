@@ -2,7 +2,7 @@ SEARCH_CONTRACT = \
 """
 Given the following plan and set of questions, return a json of bm25 optimized keyword 
 queries (MARCO search) and a master query (used for semantic rerank). You may have up 
-to 4 [queries,master_query] pairs in your "searches" array. 
+to *2* [queries,master_query] pairs in your "searches" array. 
 
 > You *MUST* answer with the following format:
 ``` 
@@ -28,7 +28,7 @@ to 4 [queries,master_query] pairs in your "searches" array.
 SELECT_CONTRACT = \
 """
 Given previous context and following search result metadata 
-select up to 6 segment_ids for further exploration
+select up to *6* segment_ids for further exploration
 
 > You *MUST* answer with the following format
 ``` 
@@ -45,29 +45,15 @@ select up to 6 segment_ids for further exploration
 ```
 """
 
-PLAN_CONTRACT = \
-"""
-You are an orchestrator for different RAG agents. The RAG agent has 5 rounds to answer the given questions.
-Each round consists of 3 steps (search -> select -> update):
-1. Generate Bm25 optimized keyword queries and a master query for semantic rerank (search)
-2. Select relevant documents from metadata result (select)
-3. Update answer given the selected documents (update)
-Your job is to create an efficient plan of retrieval.
-
-> You *MUST* answer with the following format
-``` 
-<cot> Bried cot summary </cot>
-<answer> Your constructed plan for the RAG agent</answer>
-```
-"""
-
 UPDATE_CONTRACT = \
 """
 Given the previous context and the search results given below update your answer status
+*DO NOT* remove any existing citations, but you may add new ones.
+Immediately upon marking a question as true it will be removed from the next round.
+> Since this is a fact checking assignment the document context is any relevant information from the document we are fact checking that you may need in your answer.
+
 
 > You *MUST* answer with the following format
-make sure to append your round summary to the end of the rounds array 
-making sure not to overwrite any previous round summary 
 ```
 <cot> Brief cot summary</cot> 
 <answer>
@@ -75,6 +61,7 @@ making sure not to overwrite any previous round summary
 "questions": [
         {
             "question": <verbatim user question>,
+            "doc_context": <verbatim doc context>,
             "answer": <in progress answer/ finished answer>,
             "citations": [<**ONLY** Marco segment_ids>]
             "finished": <true if fully confident and finished working, false otherwise>
@@ -83,10 +70,23 @@ making sure not to overwrite any previous round summary
     ],
 "rounds": [
         {
-            "summary": <summary of round, include successes and shortcomings, info that should persist,etc>
+            "summary": <Brief summary of the round and different kw queries you tried that did not yield results to avoid in the future>,
+            "seen_ids": [ # A list of seen search results to avoid
+                <segment_id1>,
+                <segment_id2>,
+                ...
+            ]
         },
-    ...
-]
+        {
+            "summary": <Also in your summaries include how you might improve the next round, what you learned, and what you would do differently>,
+            "seen_ids": [ 
+                <segment_id1>,
+                <segment_id2>,
+                ...
+            ]
+        },
+        ...
+    ]
 }
 ```
 </answer>
@@ -125,4 +125,35 @@ Your responses will be consumed **programmatically**: after the caller strips th
 * **Do not nest `<cot>` or `<answer>` tags inside JSON values.**
 
 Follow these instructions **exactly** so downstream code can parse your output without post‑processing.
+"""
+
+PLAN_NEXT_CONTRACT = \
+"""
+You are a **Information Retrieval Planner** -- creating a plan for the upcoming round of a question answering system.
+A full round looks like this:
+Plan → Search (queries and master query) → Select (SEGMENT_ID, from metadata) → Update Answer (GIVEN CONTEXT) -> Next round starts back up with Plan
+
+Below you will be given the following information:
+
+* `current_answer` – This is a json object, what will be relevant to you are the questions with document context (more about this later), current answers, and round summaries. Use these to guide your planning for the upcoming round.
+* `max_rounds` – the total round budget
+* `current_round` – the current round
+* `questions` – a list of questions and document context
+> Since this is a fact checking assignment the document context is any relevant information from the document we are fact checking that you may need in your answer.
+
+> If this is the first round, you will be given `questions` instead of `current_answer` but this does not alter your goal.
+
+Using this information you must craft **one** focused plan for the **upcoming** round only.  
+Base the plan on what is still missing, lessons in previous `rounds[i].summary`, and any `seen_ids` to avoid duplicates.
+Try to craft a plan with 1-2 focused searches each search contains max 4 queries and a master query for semantic rerank, avoid using similar queries as previous round summaries.
+
+---
+
+> You *MUST* answer with the following format
+```
+<cot> Brief cot summary</cot> 
+<answer>
+Your plan for the next round
+</answer>
+```
 """

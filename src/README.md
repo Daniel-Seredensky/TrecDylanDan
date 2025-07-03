@@ -186,17 +186,3 @@ java -cp "src/QA_Assistant/Search/lib/*:." src.QA_Assistant.Search.Searcher
 
 
 # Current plans
-
-* implement better storage for each assistant
-> Store/Track: threadID, LLM responses, answer progress,
-search queries, top 15 search results, top 75 results, 
-* implement a page tool
-> you can only send up to 5kb per tool call response, I don't want the LLM to have to redo similar searches over time, implement a page tool (segments of 15 from 0-75?)
-* implement a fall back bing search tool 
-> if the LLM can't find anything from the marco index we go to bing
-hopefully bing will be useful and we can just attempt to cross validate the bing results with the marco index
-* implement a better fallback plan
-> `_force_final_prompt` can be improved 
-* ? Implement a file search tool
-> instead of sending in the results of a search as text, attach as a file 
-not sure if this will be useful
