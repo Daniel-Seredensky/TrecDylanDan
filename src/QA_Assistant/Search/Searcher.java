@@ -43,7 +43,7 @@ public class Searcher {
     // ---------------- configuration ----------------
     private static final Path   INDEX_PATH      = Paths.get("/Volumes/X9 Pro/MarcoIndex");
     private static final int    TOP_N_PER_QUERY = 5000;
-    private static final int    FINAL_N         = 750;          // ← only 75 docs now
+    private static final int    FINAL_N         = 200;          
     private static final double RRF_K           = 60.0;
     private static final int    MAX_QUERIES     = 8;
 
@@ -60,10 +60,10 @@ public class Searcher {
             synArgs.put("ignoreCase", "true");
             synArgs.put("expand",     "true");
 
-             Map<String,String> stopArgs = new HashMap<>();
+            Map<String,String> stopArgs = new HashMap<>();
             stopArgs.put("ignoreCase", "true");
 
-            QUERY_ANALYZER =
+            QUERY_ANALYZER = 
                 CustomAnalyzer.builder(Paths.get("src/QA_Assistant/Search/synonyms"))
                     .withTokenizer("standard")                  // StandardTokenizer
                     .addTokenFilter("englishPossessive")        // 's →   (keeps positions)

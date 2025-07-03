@@ -57,16 +57,14 @@ async def select_documents(
     except asyncio.TimeoutError:
         proc.kill()
         await proc.wait()
-        raise RuntimeError("DocumentSelection timed out")
+        return None
 
     if proc.returncode:
-        raise RuntimeError(
-            f"DocumentSelection failed [{proc.returncode}]:\n{stderr_bytes.decode()}"
-        )
+        return None
 
     # ---------- parse JSONL ----------
     jsonl = stdout_bytes.decode("utf-8").strip().splitlines()
-    return [json.loads(line) for line in jsonl]
+    return jsonl
 
 
 # ---------------- quick test ----------------

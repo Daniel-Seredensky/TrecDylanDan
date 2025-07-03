@@ -33,7 +33,7 @@ from openai.types.responses import Response
 from src.QA_Assistant.answer_contracts import (
     SEARCH_CONTRACT,
     SELECT_CONTRACT,
-    PLAN_CONTRACT,
+    PLAN_NEXT_CONTRACT,
     UPDATE_CONTRACT,
     FINAL_CONTRACT
 )
@@ -48,7 +48,7 @@ MODEL_NAME: str = os.getenv("OPENAI_RESPONSES_MODEL")
 BM25_RESULTS_PATH: str = os.getenv("BM25_RESULTS_PATH")
 
 
-class QAStatus(str, Enum):
+class QAStatus(Enum):
     NO_ANSWER = "no_answer"
     PARTIAL = "partial_answer"
     FINISHED = "finished"
@@ -68,11 +68,10 @@ class BaseAgent:
     """
     Plan / search / answer‑update skeleton.
     """
-    MAX_TOOL_ROUNDS: int = 5
+    MAX_TOOL_ROUNDS: int = 3
 
     async def __init__(
         self,
-        *,
         questions: List[str],
         client: AsyncAzureOpenAI,
     ) -> None:
@@ -120,11 +119,12 @@ class BaseAgent:
 
     # ────────────────────────── public API: PLAN stage ───────────────────────
 
-    async def get_plan_for_questions(self) -> str:
+    async def get_plan(self,round_num) -> str:
         """
         Gets the plan for the given questions.
         """
-        prompt = PLAN_CONTRACT + f"\n\n{self.questions}"
+        context = {"questions": self.questions,"current_round":round_num,"max_rounds":self.MAX_TOOL_ROUNDS} if round != 0 else {"current_answer": self.full_answer,"current_round":round_num,"max_rounds":self.MAX_TOOL_ROUNDS}
+        prompt = PLAN_NEXT_CONTRACT + f"---\n{context.__str__()}"
         self._record("user", prompt)
 
         resp: Response = await gated_response(assistant_id=self.agent_id,
@@ -150,7 +150,7 @@ class BaseAgent:
         """
 
         if not self.plan:
-            raise RuntimeError("Must call get_plan_for_questions() first")
+            plan = "Error generating plan, using on the fly round planning"
 
         # Build shared context fragment
         if first_round:
@@ -198,7 +198,7 @@ class BaseAgent:
             # """
             search_calls = self._extract_tag(search_calls, "answer")
             search_calls = json.loads(search_calls)
-            search_calls = search_calls["searches"]
+            search_calls = search_calls["searches"][:2]
             tasks = [self._dispatch_tool(search, 
                                         **{"queries": call["queries"],
                                         "master_query": call["master_query"]}) 
@@ -208,7 +208,8 @@ class BaseAgent:
                                         for result in await asyncio.gather(*tasks)])
         except Exception as e:  # noqa: BLE001 – log & rethrow
             traceback.print_exc()
-            raise ValueError(f"LLM produced invalid search‑call JSON: {e}\n{search_calls}")
+            search_results = "Error performing search, produce an empty selections array"
+            print("Error performing search")
 
         # ── Ask for SELECT_DOCUMENTS tool call ───────────────────────────
         content = SELECT_CONTRACT + "\n\n<search_metadata>" + search_results + "</search_metadata>"
@@ -237,7 +238,7 @@ class BaseAgent:
             # """
             select_calls = self._extract_tag(select_calls, "answer")
             select_calls = json.loads(select_calls)
-            select_calls = select_calls["selections"]
+            select_calls = select_calls["selections"][:6]
             tasks = [self._dispatch_tool(select_documents,
                                           **{"segment_ids": [segment_id], "is_segment": True})
                                           for segment_id in select_calls]
@@ -245,7 +246,8 @@ class BaseAgent:
                                           for result in await asyncio.gather(*tasks))
         except Exception as e:  # noqa: BLE001 - log & rethrow
             traceback.print_exc()
-            raise ValueError(f"LLM produced invalid select_documents JSON: {e}\n{select_calls}")
+            selected_segments = f"Error performing document retrieval: instead of attempting to update the answer just rewrite the previous answer."
+            print("Error performing document retrieval")
 
         await self._log(f"\n----RESULTS----\n{selected_segments}")
 
@@ -273,8 +275,21 @@ class BaseAgent:
         LoopStage.FINAL_CALL.value[0]["previous_response_id"] = resp.id
 
         await self._log(f"\n==== UPDATE PROMPT ====\n{content}\n==== ANSWER UPDATE ====\n{raw}\n")
-        self._update_status()
+        await self._update_status()
         return raw
+
+    async def force_final_prompt(self) -> str:
+        self._record("user", FINAL_CONTRACT)
+        await self._log(f"\n-----FORCED FINAL-----\n{FINAL_CONTRACT}")
+        resp: Response = await gated_response(assistant_id=self.agent_id,
+                                    client=self.client,
+                                    prompt=FINAL_CONTRACT,
+                                    stage = LoopStage.FINAL_CALL,
+                                    context = self._serialise_history()
+                                    )
+        answer = resp.output_text
+        await self._log("\n==== FINAL SUMMARY ====\n" + answer + "\n")
+        await self._update_status(is_summary=True, content=answer)
 
     # ─────────────────────────────── utilities ───────────────────────────────
 
@@ -304,50 +319,70 @@ class BaseAgent:
             return text.split(start, 1)[1].split(end, 1)[0].strip()
         return None
 
-    def _update_status(self, is_summary = False, content = None) -> None:
-        # Check if we are updating summary first
-        if is_summary :
-            self.summary = self._extract_tag(text=content, tag="summary") if content is not None else ""
-            return 
-        # Not summary, updating answer status
+    async def _update_status(
+        self,
+        is_summary: bool = False,
+        content: str | None = None,
+    ) -> None:
+        """
+        • If is_summary=True → update self.summary only.
+        • Otherwise:
+            – append each finished question item to the file at CONTEXT_PATH
+            – remove finished items from payload["questions"]
+            – update self.full_answer
+            – set self.status according to the rules you specified
+        """
+        # ───────────────────── summary branch ─────────────────────────────
+        if is_summary:
+            self.summary = self._extract_tag(text=content, tag="summary") if content else ""
+            return
+
+        # ─────────────────── initial NO‑ANSWER check ─────────────────────
         if not self.full_answer:
             self.status = QAStatus.NO_ANSWER
             return
+
+        prev_status = self.status  # remember incoming status
+
         try:
-            payload = json.loads(self.full_answer)
-            flags = [q["finished"] for q in payload["questions"] or []]
-            self.status = (
-                QAStatus.FINISHED if all(flags)
-                else QAStatus.PARTIAL if any(flags)
-                else QAStatus.NO_ANSWER
-            )
+            payload: dict        = json.loads(self.full_answer)
+            questions: List[dict] = payload.get("questions", [])
+
+            finished_items = [q for q in questions if q.get("finished") is True]
+            remaining      = [q for q in questions if q.get("finished") is not True]
+
+            # ─────────────── persist finished items (append) ──────────────
+            if finished_items:
+                ctx_path = os.getenv("CONTEXT_PATH")            # points to Context.txt
+                async with aiofiles.open(ctx_path, mode="a") as f:
+                    for item in finished_items:
+                        await f.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+            # ────────────────── update in‑memory answer ──────────────────
+            payload["questions"] = remaining
+            self.full_answer = json.dumps(payload, ensure_ascii=False)
+
+            # ───────────────────── set QAStatus ──────────────────────────
+            if not remaining:                      # all questions done
+                self.status = QAStatus.FINISHED
+            else:
+                if finished_items:                 # at least one done, some left
+                    self.status = QAStatus.PARTIAL
+                else:                              # none finished this pass
+                    self.status = (
+                        QAStatus.NO_ANSWER
+                        if prev_status == QAStatus.NO_ANSWER
+                        else QAStatus.PARTIAL
+                    )
+
         except Exception:
             self.status = QAStatus.PARTIAL
             traceback.print_exc()
             raise ValueError("Invalid answer format")
 
-    # ───────────────────────────── placeholder hooks ─────────────────────────
 
-    async def force_final_prompt(self) -> str:
-        self._record("user", FINAL_CONTRACT)
-        await self._log(f"\n-----FORCED FINAL-----\n{FINAL_CONTRACT}")
-        resp: Response = await gated_response(assistant_id=self.agent_id,
-                                    client=self.client,
-                                    prompt=FINAL_CONTRACT,
-                                    stage = LoopStage.FINAL_CALL,
-                                    context = self._serialise_history()
-                                    )
-        answer = resp.output_text
-        await self._log("\n==== FINAL SUMMARY ====\n" + answer + "\n")
-        self._update_status(is_summary=True, content=answer)
+    # ───────────────────────────── placeholder hooks ─────────────────────────
 
     async def run(self) -> None:  # pragma: no cover
         raise NotImplementedError
 
-# TODO: write a one loop test PLAN -> GET INFO -> UPDATE -> FORCE FINAL PROMPT
-async def test(client,questions):
-    agent: BaseAgent = await BaseAgent(client=client, questions=questions)
-    await agent.get_plan_for_questions()
-    segments = await agent.get_info(first_round=True)
-    await agent.update_answer(segments)
-    await agent.force_final_prompt()
