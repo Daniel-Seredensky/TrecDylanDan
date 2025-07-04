@@ -2,7 +2,7 @@ SEARCH_CONTRACT = \
 """
 Given the following plan and set of questions, return a json of bm25 optimized keyword 
 queries (MARCO search) and a master query (used for semantic rerank). You may have up 
-to *2* [queries,master_query] pairs in your "searches" array. 
+to *2* [queries,master_query] pairs in your "searches" array. As well as up to *4* queries per search, not including the master query.
 
 > You *MUST* answer with the following format:
 ``` 
@@ -112,7 +112,7 @@ Your responses will be consumed **programmatically**: after the caller strips th
 ### 1 - General wrapper rules
 
 1. Produce **exactly one** `<cot> … </cot>` block followed immediately by **exactly one** `<answer> … </answer>` block (or `<summary> … </summary>` for the final contract).
-2. The `<cot>` block contains a **very brief** chain‑of‑thought (≤ 4 short sentences).
+2. The `<cot>` block contains a ** brief** chain‑of‑thought ).
 3. Nothing—not even whitespace—may appear before `<cot>` or after `</answer>` / `</summary>`.
 4. **NEVER** emit Markdown fences, back‑ticks, “\`\`\`”, or language hints such as `json`.
 5. **Do not escape quotation marks** inside JSON beyond normal JSON requirements; avoid `\"` unless the character is part of a string value.

@@ -10,6 +10,7 @@ from src.QA_Assistant.bucket_monitor import BucketMonitor
 from src.QA_Assistant.question_eval import assess_questions
 from src.QA_Assistant.Searcher import cohere_client
 from src.ContextBuilder import test
+from src.QA_Assistant.daemon_wrapper import JVMDaemon 
 
 async def _main():
     load_dotenv(override=True)
@@ -48,6 +49,8 @@ async def newTest():
         async with aiofiles.open(os.getenv("CONTEXT_PATH"), "w") as f:
             await f.write("")
         bm = BucketMonitor()
+        daemon = JVMDaemon()
+        await daemon._start()
         await bm.start()
         client = AsyncAzureOpenAI(
             api_key=os.getenv("AZURE_OPENAI_KEY"),
@@ -58,6 +61,7 @@ async def newTest():
         )
         await test(client=client)
     finally: 
+        await JVMDaemon.stop()
         await bm.stop()
         await client.close()
         await cohere_client.aclose()

@@ -37,18 +37,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 public class Searcher {
 
     // ---------------- configuration ----------------
-    private static final Path   INDEX_PATH      = Paths.get("/Volumes/X9 Pro/MarcoIndex");
-    private static final int    TOP_N_PER_QUERY = 5000;
+    private static final int    TOP_N_PER_QUERY = 1000;
     private static final int    FINAL_N         = 200;          
     private static final double RRF_K           = 60.0;
     private static final int    MAX_QUERIES     = 8;
 
     private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
-        new com.fasterxml.jackson.databind.ObjectMapper();
+        new ObjectMapper();
 
     // single shared analyzer with synonyms, lowercase, stop, and stem
     private static final CustomAnalyzer QUERY_ANALYZER;
@@ -99,23 +99,24 @@ public class Searcher {
         String outPath = args[args.length - 1];
         List<String> queries = Arrays.asList(Arrays.copyOfRange(args, 0, args.length - 1));
 
-        DirectoryReader reader = DirectoryReader.open(FSDirectory.open(INDEX_PATH));
-        IndexSearcher   searcher = new IndexSearcher(reader);
-        searcher.setSimilarity(new BM25Similarity());
+        DirectoryReader reader = LuceneHolder.getReader();
+        IndexSearcher   searcher = LuceneHolder.getSearcher();
 
         /* one Aggregate per *full doc id* */
         ConcurrentHashMap<String, Aggregate> aggMap = new ConcurrentHashMap<>();
 
-        ExecutorService pool    = Executors.newFixedThreadPool(queries.size());
-        List<Future<?>> futures = new ArrayList<>();
+        ExecutorService pool    = LuceneHolder.getLucenePool();
+        List<CompletableFuture<Void>> cf = new ArrayList<>();
 
         for (int i = 0; i < queries.size(); i++) {
             final String qtext = queries.get(i);
-            futures.add(pool.submit(() -> runSingleQuery(qtext, searcher, aggMap)));
+            cf.add(CompletableFuture.runAsync(
+                    () -> runSingleQuery(qtext, searcher, aggMap), pool));
         }
-        pool.shutdown();
-        for (Future<?> f : futures) f.get();
-        reader.close();
+
+        CompletableFuture
+                .allOf(cf.toArray(new CompletableFuture[0]))
+                .join();
 
         /* ---------------- sort & write top N ---------------- */
         List<Aggregate> sorted = new ArrayList<>(aggMap.values());
