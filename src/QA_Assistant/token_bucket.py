@@ -70,7 +70,7 @@ class AsyncTokenBucket:
 
                 # Earliest expiry → how long we need to wait
                 oldest_ts, _, _ = self._events[0]
-                sleep_for = (self.window - (now - oldest_ts)) + 1e-2
+                sleep_for = (self.window - (now - oldest_ts)) + 1 # +1 to be safe
             await asyncio.sleep(sleep_for)
 
     # ───────────────────────────── public API ────────────────────────────

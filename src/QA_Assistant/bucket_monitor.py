@@ -13,9 +13,7 @@ from src.QA_Assistant.rate_limits import (
     global_req_limiter,
     global_tok_limiter,
     assistant_tok_limiters,
-    cohere_bucket1,
-    cohere_bucket2,
-    cohere_bucket3
+    cohere_bucket
 )
 from src.QA_Assistant.token_bucket import AsyncTokenBucket
 
@@ -28,10 +26,8 @@ class BucketMonitor:
         plan_tok_bucket:AsyncTokenBucket = plan_tok_limiter,
         global_req_bucket:AsyncTokenBucket = global_req_limiter,
         global_tok_bucket:AsyncTokenBucket = global_tok_limiter,
-        cohere1:AsyncTokenBucket = cohere_bucket1[0], 
-        cohere2:AsyncTokenBucket = cohere_bucket2[0],
-        cohere3:AsyncTokenBucket = cohere_bucket3[0],
         assistant_buckets:Dict[str,AsyncTokenBucket] = assistant_tok_limiters,
+        cohere: AsyncTokenBucket = cohere_bucket[0],
         interval: float = 1,
         csv_path: str | os.PathLike[str] = "bucket_usage.csv",
         overwrite: bool = True,
@@ -43,9 +39,7 @@ class BucketMonitor:
             "Plan_tok": plan_tok_bucket,
             "Global_req": global_req_bucket,
             "Global_tok": global_tok_bucket,
-            "Cohere1": cohere1,
-            "Cohere2": cohere2,
-            "Cohere3": cohere3,
+            "Cohere": cohere,
         }
 
         # The per‑assistant dict (may grow while running)

@@ -36,9 +36,9 @@ from src.test import QUESTION_PAIRS
 class ContextProctor:
     """Runs `assess_questions` with **queue‑managed** concurrency."""
 
-    MAX_WORKERS: int = 10          # how many workers run in parallel
-    STAGGER_SEC: float = 3.0      # delay between first, second, third starts
-    BATCH_SIZE: int = 1           # questions per worker‑batch (3‑5 recommended)
+    MAX_WORKERS: int = 4          # how many workers run in parallel
+    STAGGER_SEC: float = 2.0      # delay between first, second, third starts
+    BATCH_SIZE: int = 3           # questions per worker‑batch (3‑5 recommended)
 
     # ────────────────────────────── init ────────────────────────────────
     def __init__(self, client: AsyncAzureOpenAI, questions: List[Dict[str, str]]):
@@ -81,7 +81,7 @@ class ContextProctor:
         sep = "\n===================================\n"
         total_context = sep.join(filter(None, self._results))
 
-        async with aiofiles.open(context_path, "w") as f:
+        async with aiofiles.open(context_path, "a") as f:
             await f.write(total_context)
 
     # ─────────────────────────── worker loop ────────────────────────────

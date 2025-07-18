@@ -16,7 +16,7 @@ class QuestionEvalAgent(BaseAgent):
             segments = await self.get_info(first_round= (rounds == 0))
             await self.update_answer(segments)
             rounds += 1
-            if rounds >=5 :
+            if rounds >= self.MAX_TOOL_ROUNDS:
                 await self.force_final_prompt()
                 break
             await self.reset_logical_thread()

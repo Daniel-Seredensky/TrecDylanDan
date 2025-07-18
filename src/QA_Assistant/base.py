@@ -37,8 +37,8 @@ from src.QA_Assistant.answer_contracts import (
     UPDATE_CONTRACT,
     FINAL_CONTRACT
 )
+from src.QA_Assistant.daemon_wrapper import JVMDaemon
 from src.QA_Assistant.Searcher import search
-from src.QA_Assistant.DocSelect import select_documents
 from src.QA_Assistant.rate_limits import gated_response, LoopStage
 
 # ───────────────────────────────────────── constants ──────────────────────────
@@ -149,18 +149,20 @@ class BaseAgent:
         Returns the *selected‑segments JSON* produced by the select_documents tool.
         """
 
-        if not self.plan:
-            plan = "Error generating plan, using on the fly round planning"
+        if (self.plan is None) or (self.plan == ""):
+            plan = "Error generating plan, plan on the fly in your chain of thought"
+        else:
+            plan = self.plan
 
         # Build shared context fragment
         if first_round:
             context_block = "\n\n".join([
-                "<plan>" + self.plan + "</plan>",
+                "<plan>" + plan + "</plan>",
                 "<questions>" + self.questions + "</questions>",
             ])
         else:
             context_block = "\n\n".join([
-                "<plan>" + self.plan + "</plan>",
+                "<plan>" + plan + "</plan>",
                 "<answer>" + (self.full_answer or "") + "</answer>",
             ])
 
@@ -239,9 +241,9 @@ class BaseAgent:
             select_calls = self._extract_tag(select_calls, "answer")
             select_calls = json.loads(select_calls)
             select_calls = select_calls["selections"][:6]
-            tasks = [self._dispatch_tool(select_documents,
-                                          **{"segment_ids": [segment_id], "is_segment": True})
-                                          for segment_id in select_calls]
+            tasks = [self._dispatch_tool(JVMDaemon.select_documents,
+                                          **{"segment_ids": select_calls, "is_segment": True})
+                                          ]
             selected_segments = "\n".join(json.dumps(result) 
                                           for result in await asyncio.gather(*tasks))
         except Exception as e:  # noqa: BLE001 - log & rethrow
@@ -307,10 +309,10 @@ class BaseAgent:
             payload = {"call":"search","kwargs": kwargs,"results":results}
             await self._log(f"\n----TOOL CALL----\n{payload}", _file=self.tools_path)
             return {"search": json.dumps(kwargs)[:150], "results":results}
-        results = await select_documents(**kwargs)
+        results = await tool(**kwargs)
         payload = {"call":"select_documents","kwargs": kwargs,"results":results}
         await self._log(f"\n----TOOL CALL----\n{payload}", _file=self.tools_path)
-        return {"segment_id:": kwargs["segment_ids"], "segment_text": results}
+        return results
 
     @staticmethod
     def _extract_tag(text: str, tag: str) -> Optional[str]:

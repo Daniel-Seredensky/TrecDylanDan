@@ -17,7 +17,7 @@ from enum import Enum
 from functools import lru_cache
 import traceback
 from dotenv import load_dotenv
-import os
+import os, time
 
 from openai import AsyncAzureOpenAI
 from openai.types.responses import Response, ResponseUsage
@@ -73,7 +73,7 @@ GLOBAL_TOK_CAP: int = 200_000     # tokens   / minute (global)
 PERSONAL_TOK_CAP: int = 100_000  # tokens / minute 
 
 # Global Cohere limits
-COHERE_RERANK_CAP: int = 10     # requests / minute (global)
+COHERE_RERANK_CAP: int = 500     # requests / minute (global)
 
 PROMPT_BUFFER = lambda max_out: int(max_out * 0.025) #safety buffer for tokens
 
@@ -94,9 +94,8 @@ assistant_tok_limiters: Dict[str, AsyncTokenBucket] = defaultdict(
 )
 
 # Cohere limiters
-cohere_bucket1 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY0")]
-cohere_bucket2 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY1")]
-cohere_bucket3 = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY2")]
+cohere_bucket = [AsyncTokenBucket(COHERE_RERANK_CAP, WINDOW), os.getenv("COHERE_API_KEY")]
+
 
 # ───────────────────────────────────────── helpers ───────────────────────────
 
@@ -189,16 +188,7 @@ async def gated_cohere_rerank_call(
     send_fn: Callable[..., Awaitable[Any]],
     **kwargs,
 ):
-    bucket = None
-    key = None
-    if cohere_bucket1[0].current_load() == 10:
-        if cohere_bucket2[0].current_load() == 10:
-            bucket,key = cohere_bucket3
-        else:
-            bucket,key = cohere_bucket2
-    else:
-        bucket,key = cohere_bucket1
-            
+    bucket,key = cohere_bucket          
     headers = {
         "Authorization": f"Bearer {key}",
         "Content-Type":  "application/json"

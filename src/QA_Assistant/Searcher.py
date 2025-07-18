@@ -6,7 +6,6 @@ import asyncio
 import aiofiles
 import json
 from  pathlib import Path
-import aiohttp
 import httpx
 
 import json 
@@ -18,9 +17,10 @@ from dotenv import load_dotenv; load_dotenv()
 from typing import List
 from uuid import uuid4
 
-from src.QA_Assistant.Rate_limits import gated_cohere_rerank_call
+from src.QA_Assistant.rate_limits import gated_cohere_rerank_call
+from src.QA_Assistant.daemon_wrapper import JVMDaemon
 
-cohere_client = httpx.AsyncClient(timeout=80.0) as client
+cohere_client = httpx.AsyncClient(timeout=80.0) 
 
 async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
@@ -28,37 +28,10 @@ async def search(queries: List[str], master_query, agentId) -> List[dict]:
     """
     results = os.getenv("BM25_RESULTS_PATH")
     path = Path(f"{results}/{agentId}/results-{uuid4()}.jsonl")
-    await run_bm25_search(queries, path)
+    await JVMDaemon.run_bm25_search(queries, path)
     return await rerank_jsonl(path, master_query)
 
 JAVA_CLASSPATH = "src/QA_Assistant/Search/lib/*:."
-
-async def run_bm25_search(queries: list[str], path: Path) -> None:
-    cmd = [
-        "java",
-        "-cp", JAVA_CLASSPATH,
-        "src.QA_Assistant.Search.Searcher",
-        *queries,
-        str(path)
-    ]
-
-    proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,   # capture output for debugging
-        stderr=asyncio.subprocess.PIPE,
-        env=os.environ.copy()  # Pass current environment, including .env vars
-    )
-
-    try:
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
-    except asyncio.TimeoutError:
-        proc.kill()
-        await proc.wait()
-
-    if proc.returncode:
-        print("Java process stdout:\n", stdout.decode())
-        print("Java process stderr:\n", stderr.decode())
-        return None
 
 async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
     """
@@ -106,7 +79,7 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         body.get("results", []),
         key=lambda x: x["relevance_score"],
         reverse=True
-    )[:25] 
+    )[:15] 
 
     # 4) Build output list with only the requested metadata
     out_list = []
@@ -121,7 +94,7 @@ async def rerank_jsonl(jsonl_path: Path, master_query: str) -> List[dict]:
         })
     return out_list
 
-async def brave_search(query: str, num_results: int = 3):
+""" async def brave_search(query: str, num_results: int = 3):
     if not os.getenv("BRAVE_API_KEY"):
         raise RuntimeError("BRAVE_API_KEY is not set in the environment.")
     headers = {"Accept": "application/json", "X-Subscription-Token": os.getenv("BRAVE_API_KEY")}
@@ -138,4 +111,4 @@ async def brave_search(query: str, num_results: int = 3):
                     "url": item.get("url"),
                     "description": item.get("description"),
                 })
-            return results
+            return results """
