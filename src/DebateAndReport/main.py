@@ -1,25 +1,35 @@
 import requests
 import json
 import re
+import os
 
 # LangFlow API URLs
-debate_pipeline_url = "http://127.0.0.1:7860/api/v1/run/ff071340-7374-4b9b-b222-bb157ff5be7b"
-report_pipeline_url = "http://127.0.0.1:7860/api/v1/run/67ea3993-b394-4115-a3a4-b51a329a7e28"
-report_shortener_pipeline_url = "http://127.0.0.1:7860/api/v1/run/05043cdc-403e-4356-bf96-192e8b487f5b"
-report_scorer_pipeline_url = "http://127.0.0.1:7860/api/v1/run/3315485d-c0de-46fb-ac03-291563d1e6a1"
+debate_pipeline_url = "http://127.0.0.1:7860/api/v1/run/9074c506-c21b-43ae-9c2b-5339cadd4164"
+report_pipeline_url = "http://127.0.0.1:7860/api/v1/run/5deec78b-bd62-467c-954c-68e278b4cd6f"
+report_shortener_pipeline_url = "http://127.0.0.1:7860/api/v1/run/5d1f7aa7-a685-40c4-92e4-441e6dfb8e10"
+report_scorer_pipeline_url = "http://127.0.0.1:7860/api/v1/run/1e52a8ee-34a9-4669-b94b-a325d8e41533"
 
 # Filepaths
-ARTICLE_PATH = "DebateAndReport/input/article.txt"
-NOTES_PATH = "DebateAndReport/input/notes.txt"
+ARTICLE_PATH = "src/DebateAndReport/input/Article1002.txt"
+NOTES_PATH = "src/DebateAndReport/input/Context1002.txt"
 
-DEBATE_LOG_PATH = "DebateAndReport/output/debate_log.txt"
-REPORT_SCORES_PATH = "DebateAndReport/output/report_scores.txt"
-REPORT_WITH_DEBATE_PATH = "DebateAndReport/output/report_with_debate.txt"
-REPORT_WITHOUT_DEBATE_PATH = "DebateAndReport/output/report_without_debate.txt"
+DEBATE_LOG_PATH = "src/DebateAndReport/output/debate_log.txt"
+REPORT_SCORES_PATH = "src/DebateAndReport/output/report_scores.txt"
+REPORT_WITH_DEBATE_PATH = "src/DebateAndReport/output/report_with_debate.json"
+REPORT_WITHOUT_DEBATE_PATH = "src/DebateAndReport/output/report_without_debate.json"
 
-def send_request(url, payload, headers):
+def send_request(url, payload, headers=None):
+    if headers is None:
+        try:
+            api_key = os.environ["LANGFLOW_API_KEY"]
+        except KeyError:
+            raise ValueError("LANGFLOW_API_KEY environment variable not found. Please set your API key in the environment variables.")
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": api_key
+        }
     try:
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.request("POST", url, json=payload, headers=headers)
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:
@@ -45,6 +55,9 @@ def generate_debate():
 def generate_report(use_debate):
     article = open(ARTICLE_PATH, "r").read()
     notes = open(NOTES_PATH, "r").read()
+    # Ensure debate log file exists
+    if not os.path.exists(DEBATE_LOG_PATH):
+        open(DEBATE_LOG_PATH, "w").close()
     debate = open(DEBATE_LOG_PATH, "r").read()
 
     input_text = "Article: " + article + "\n\nNotes: " + notes
@@ -63,11 +76,13 @@ def generate_report(use_debate):
     if response is None:
         print("Failed to get a response from the report pipeline API.")
         return
+    print("API raw response:", repr(response.text))  # Debug print
     try:
         report_text = json.loads(response.text)["outputs"][0]["outputs"][0]["results"]["text"]["data"]["text"]
     except Exception as e:
         print(f"Error parsing report pipeline response: {e}")
         return
+    report_text = clean_json_string(report_text)
     open(REPORT_WITH_DEBATE_PATH if use_debate else REPORT_WITHOUT_DEBATE_PATH, "w").write(report_text)
 
 def shorten_report(report_path):
@@ -91,6 +106,7 @@ def shorten_report(report_path):
     except Exception as e:
         print(f"Error parsing report shortener response: {e}")
         return
+    shortened_text = clean_json_string(shortened_text)
     open(report_path, "w").write(shortened_text)
 
 def score_reports(report_path_1, report_path_2):
@@ -116,9 +132,20 @@ def get_word_count(responses):
         wordCount = 0
         for response in responses:
             text = response["text"]
-            words = re.findall("\w+", text)
+            words = re.findall(r"\w+", text)
             wordCount += len(words)
         return wordCount
+
+def clean_json_string(json_str):
+    # Remove markdown code block indicators if present
+    json_str = json_str.strip()
+    if json_str.startswith('```json'):
+        json_str = json_str[len('```json'):].lstrip()
+    if json_str.startswith('```'):
+        json_str = json_str[len('```'):].lstrip()
+    if json_str.endswith('```'):
+        json_str = json_str[:-3].rstrip()
+    return json_str
 
 def main():
     generate_debate()
@@ -134,11 +161,37 @@ def main():
 
     print("Shortening reports if needed...")
 
-    while get_word_count(json.loads(open(REPORT_WITH_DEBATE_PATH, "r").read())) > 250:
-        shorten_report(REPORT_WITH_DEBATE_PATH)
+    # Handle report with debate
+    try:
+        report_with_debate_content = open(REPORT_WITH_DEBATE_PATH, "r").read()
+        report_with_debate_content = clean_json_string(report_with_debate_content)
+        if not report_with_debate_content.strip():
+            print("Report with debate is empty or invalid, skipping shortening.")
+        else:
+            report_with_debate_data = json.loads(report_with_debate_content)
+            while get_word_count(report_with_debate_data) > 250:
+                shorten_report(REPORT_WITH_DEBATE_PATH)
+                report_with_debate_content = open(REPORT_WITH_DEBATE_PATH, "r").read()
+                report_with_debate_content = clean_json_string(report_with_debate_content)
+                report_with_debate_data = json.loads(report_with_debate_content)
+    except json.JSONDecodeError:
+        print("Report with debate is not valid JSON, skipping shortening.")
 
-    while get_word_count(json.loads(open(REPORT_WITHOUT_DEBATE_PATH, "r").read())) > 250:
-        shorten_report(REPORT_WITHOUT_DEBATE_PATH)
+    # Handle report without debate
+    try:
+        report_without_debate_content = open(REPORT_WITHOUT_DEBATE_PATH, "r").read()
+        report_without_debate_content = clean_json_string(report_without_debate_content)
+        if not report_without_debate_content.strip():
+            print("Report without debate is empty or invalid, skipping shortening.")
+        else:
+            report_without_debate_data = json.loads(report_without_debate_content)
+            while get_word_count(report_without_debate_data) > 250:
+                shorten_report(REPORT_WITHOUT_DEBATE_PATH)
+                report_without_debate_content = open(REPORT_WITHOUT_DEBATE_PATH, "r").read()
+                report_without_debate_content = clean_json_string(report_without_debate_content)
+                report_without_debate_data = json.loads(report_without_debate_content)
+    except json.JSONDecodeError:
+        print("Report without debate is not valid JSON, skipping shortening.")
 
     print("Scoring reports...")
 

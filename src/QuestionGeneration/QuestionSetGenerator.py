@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Dynamically import template_generator
-TEMPLATE_GEN_PATH = Path(__file__).resolve().parent.parent.parent / 'DebateAndReport' / 'template_generator' / 'template_generator.py'
+TEMPLATE_GEN_PATH = Path(__file__).resolve().parent.parent / 'DebateAndReport' / 'template_generator' / 'template_generator.py'
 spec = importlib.util.spec_from_file_location("template_generator", str(TEMPLATE_GEN_PATH))
 if spec is None or spec.loader is None:
     raise ImportError(f"Could not load template_generator from {TEMPLATE_GEN_PATH}")
@@ -171,7 +171,103 @@ class AsyncQuestionSetGenerator:
             output["unanswered"] = unanswered
         return output
 
-def run_question_set_pipeline(doc_id: str, output_path: Optional[str] = None) -> dict:
+def run_question_set_pipeline(document_text: str, questions: Optional[List[str]] = None, output_path: Optional[str] = None, model: str = "gpt-4o", batch_size: int = 10, max_concurrent: int = 2) -> dict:
+    """
+    Runs the question set pipeline with raw document text and optional questions.
+    If questions are not provided, they will be generated automatically from the document.
+    
+    Args:
+        document_text: Raw text of the document to analyze
+        questions: Optional list of questions to ask about the document
+        output_path: Optional path to save the result
+        model: OpenAI model to use
+        batch_size: Number of questions to process in each batch
+        max_concurrent: Maximum number of concurrent API calls
+        
+    Returns:
+        Dictionary with answered and unanswered questions
+    """
+    async def _run():
+        # If no questions provided, generate them from the document
+        if questions is None:
+            # Generate questions using a simple prompt
+            question_generation_prompt = f"""
+            Based on the following document, generate 10 relevant questions that would help 
+            understand the key points, implications, and details of the content.
+            
+            Document:
+            {document_text}
+            
+            Generate questions that cover:
+            - Main topics and themes
+            - Key findings or conclusions
+            - Implications and consequences
+            - Technical details and processes
+            - Comparisons and contrasts mentioned
+            
+            Return only the questions, one per line, without numbering or bullet points.
+            """
+            
+            # Generate questions using OpenAI
+            client = openai.AsyncOpenAI()
+            try:
+                response = await client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that generates relevant questions about documents."},
+                        {"role": "user", "content": question_generation_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=500
+                )
+                generated_questions_text = response.choices[0].message.content
+                if generated_questions_text:
+                    # Split into individual questions and clean up
+                    generated_questions = [q.strip() for q in generated_questions_text.split('\n') if q.strip()]
+                    questions_to_use = generated_questions[:10]  # Limit to 10 questions
+                else:
+                    # Fallback questions if generation fails
+                    questions_to_use = [
+                        "What is the main topic of this document?",
+                        "What are the key points discussed?",
+                        "What are the main conclusions?",
+                        "What implications does this have?",
+                        "What are the main challenges mentioned?",
+                        "What are the benefits described?",
+                        "What processes or methods are discussed?",
+                        "What comparisons are made?",
+                        "What recommendations are given?",
+                        "What future considerations are mentioned?"
+                    ]
+            finally:
+                await client.close()
+        else:
+            questions_to_use = questions
+        
+        # Create a simple question template structure
+        question_template = {
+            "groups": [
+                {
+                    "questions": questions_to_use
+                }
+            ]
+        }
+        
+        generator = AsyncQuestionSetGenerator(document_text, question_template, model=model, batch_size=batch_size, max_concurrent=max_concurrent)
+        try:
+            result = await generator.generate()
+        finally:
+            await generator.client.close()
+            
+        if output_path:
+            output_path_obj = Path(output_path)
+            output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            with output_path_obj.open("w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
+        return result
+    return asyncio.run(_run())
+
+def run_question_set_with_doc_id(doc_id: str, output_path: Optional[str] = None) -> dict:
     """
     Runs the full question set pipeline for a given doc_id.
     If output_path is provided, writes the result to that path.
@@ -204,5 +300,5 @@ if __name__ == "__main__":
     # Default output to DerivedData/QuestionSets/{doc_id}.json
     safe_doc_id = doc_id.replace('/', '_').replace('#', '_')
     output_path = f"DerivedData/QuestionSets/{safe_doc_id}.json"
-    result = run_question_set_pipeline(doc_id, output_path=output_path)
+    result = run_question_set_with_doc_id(doc_id, output_path=output_path)
     print(f"Wrote question set output to {output_path}")
