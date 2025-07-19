@@ -1,5 +1,0 @@
-{
-  "java.project.referencedLibraries": [
-    "src/QA_Assistant/Search/lib/**/*.jar"
-  ]
-} 

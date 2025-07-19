@@ -30,7 +30,7 @@ import aiofiles
 
 # ── internal ────────────────────────────────────────────────────────────────
 from src.QA_Assistant.question_eval import assess_questions
-from src.test import QUESTION_PAIRS
+from src.test import QUESTION_PAIRS,TEST1,TEST2
 
 
 class ContextProctor:
@@ -111,10 +111,23 @@ class ContextProctor:
         stringified = [json.dumps(q) for q in batch]
         contexts = await assess_questions("\n".join(stringified),self.client)
         return json.dumps(contexts)
+    
+    @staticmethod
+    def write_answers(q_set: dict[str, List[Dict[str, str]]]) -> None:
+        """Write the answers to the questions in `q_set`."""
+        answered = q_set["answered"]
+        with open(os.getenv("CONTEXT_PATH"), "w") as f:
+            for question in answered:
+                f.write(f"Question: {question['question']}\n")
+                f.write(f"Answer: {question['answer']}\n")
+                f.write("\n===================================\n")
+
+
 
 
 # ────────────────────────────── quick test ──────────────────────────────
 async def test(client: AsyncAzureOpenAI):
-    questions = QUESTION_PAIRS["questions"]
+    ContextProctor.write_answers(TEST2)
+    questions = TEST2["unanswered"]
     proctor = ContextProctor(client, questions)
     await proctor.create_context()

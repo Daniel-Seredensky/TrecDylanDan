@@ -4,8 +4,8 @@ clueweb
 *.env
 *.venv
 *.conda
+*.vscode
 
-.conda
 *.class
 DerivedData/CluewebIndex/*
 DerivedData/SearchResults/*
