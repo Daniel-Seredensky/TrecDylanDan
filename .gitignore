@@ -24,3 +24,4 @@ cleanup.txt
 !DerivedData/ContextBuilder/.gitkeep
 
 src/test.py
+.cursorignore
