@@ -9,7 +9,7 @@ import json
 from src.IR_Ensemble.QA_Assistant.bucket_monitor import BucketMonitor
 from src.IR_Ensemble.QA_Assistant.Searcher import cohere_client
 from src.IR_Ensemble.QA_Assistant.daemon_wrapper import JVMDaemon 
-from src.IR_Ensemble.ContextBuilder import ContextProctor
+from IR_Ensemble.context_builder import ContextProctor
 from src.ReportGenerator.report_generator import ReportGenerator
 from src.DebateAndReport.ReportEvaluator import ReportEvaluator
 
@@ -70,7 +70,9 @@ async def main():
     bm = BucketMonitor()
     try: 
         await bm.start()
-        return await _main(oai_client=oai_client,aoai_client=aoai_client,topic=topic)
+        return await _main(oai_client=oai_client,
+                           aoai_client=aoai_client,
+                           topic=topic)
     except Exception as e:
         print(e)
         traceback.print_exc()

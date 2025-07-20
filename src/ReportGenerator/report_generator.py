@@ -5,14 +5,8 @@
 from __future__ import annotations
 
 import os
-import json
-import uuid
-from enum import Enum
-from typing import Any, Awaitable, Dict, List, Optional
-import traceback
+from typing import List, Optional
 
-import aiofiles, asyncio
-from asyncinit import asyncinit
 from openai import AsyncOpenAI
 from openai.types.responses import Response
 from src.ReportGenerator.prompts import SYSTEM_PROMPT
@@ -24,7 +18,6 @@ def _ensure_file(path: str) -> None:
     with open(path, "w", encoding="utf-8") as f: f.write("")
 
 # ────────────────────────────────────────── agent ─────────────────────────────
-
 
 class ReportGenerator:
     """
@@ -49,12 +42,9 @@ class ReportGenerator:
         self.LOG_PATH = os.getenv("REPORT_LOG_PATH")
         _ensure_file(self.LOG_PATH)
             
-    # ───────────────────────────── logging & history ─────────────────────────
 
     def _log(self, msg: str, *, _file: Optional[str] = None) -> None:
         with open(_file or self.LOG_PATH, "a", encoding="utf-8") as f: f.write(msg)
-
-    # ───────────────────── public API: INFO (search + select) ─────────────────
 
     @staticmethod
     def _extract_tag(text: str, tag: str) -> Optional[str]:

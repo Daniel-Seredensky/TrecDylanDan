@@ -35,9 +35,9 @@ from src.IR_Ensemble.QA_Assistant.question_eval import assess_questions
 class ContextProctor:
     """Runs `assess_questions` with **queue‑managed** concurrency."""
 
-    MAX_WORKERS: int = 4          # how many workers run in parallel
+    MAX_WORKERS: int = 4          # how many workers run in parallel 
     STAGGER_SEC: float = 2.0      # delay between first, second, third starts
-    BATCH_SIZE: int = 2           # questions per worker‑batch (3‑5 recommended)
+    BATCH_SIZE: int = 2           # questions per worker‑batch (‑5 recommended)
 
     # ────────────────────────────── init ────────────────────────────────
     def __init__(self, client: AsyncAzureOpenAI, questions: List[Dict[str, str]]):
