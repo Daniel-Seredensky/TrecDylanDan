@@ -29,8 +29,7 @@ from openai import AsyncAzureOpenAI
 import aiofiles
 
 # ── internal ────────────────────────────────────────────────────────────────
-from src.QA_Assistant.question_eval import assess_questions
-from src.test import QUESTION_PAIRS,TEST1,TEST2
+from src.IR_Ensemble.QA_Assistant.question_eval import assess_questions
 
 
 class ContextProctor:
@@ -38,7 +37,7 @@ class ContextProctor:
 
     MAX_WORKERS: int = 4          # how many workers run in parallel
     STAGGER_SEC: float = 2.0      # delay between first, second, third starts
-    BATCH_SIZE: int = 3           # questions per worker‑batch (3‑5 recommended)
+    BATCH_SIZE: int = 2           # questions per worker‑batch (3‑5 recommended)
 
     # ────────────────────────────── init ────────────────────────────────
     def __init__(self, client: AsyncAzureOpenAI, questions: List[Dict[str, str]]):
@@ -112,22 +111,4 @@ class ContextProctor:
         contexts = await assess_questions("\n".join(stringified),self.client)
         return json.dumps(contexts)
     
-    @staticmethod
-    def write_answers(q_set: dict[str, List[Dict[str, str]]]) -> None:
-        """Write the answers to the questions in `q_set`."""
-        answered = q_set["answered"]
-        with open(os.getenv("CONTEXT_PATH"), "w") as f:
-            for question in answered:
-                f.write(f"Question: {question['question']}\n")
-                f.write(f"Answer: {question['answer']}\n")
-                f.write("\n===================================\n")
 
-
-
-
-# ────────────────────────────── quick test ──────────────────────────────
-async def test(client: AsyncAzureOpenAI):
-    ContextProctor.write_answers(TEST2)
-    questions = TEST2["unanswered"]
-    proctor = ContextProctor(client, questions)
-    await proctor.create_context()

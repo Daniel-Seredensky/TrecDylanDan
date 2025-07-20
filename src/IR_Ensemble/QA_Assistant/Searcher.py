@@ -17,8 +17,8 @@ from dotenv import load_dotenv; load_dotenv()
 from typing import List
 from uuid import uuid4
 
-from src.QA_Assistant.rate_limits import gated_cohere_rerank_call
-from src.QA_Assistant.daemon_wrapper import JVMDaemon
+from src.IR_Ensemble.QA_Assistant.rate_limits import gated_cohere_rerank_call
+from src.IR_Ensemble.QA_Assistant.daemon_wrapper import JVMDaemon
 
 cohere_client = httpx.AsyncClient(timeout=80.0) 
 

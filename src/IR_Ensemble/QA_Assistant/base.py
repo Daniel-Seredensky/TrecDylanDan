@@ -30,20 +30,18 @@ import aiofiles, asyncio
 from asyncinit import asyncinit
 from openai import AsyncAzureOpenAI
 from openai.types.responses import Response
-from src.QA_Assistant.answer_contracts import (
+
+from src.IR_Ensemble.QA_Assistant.answer_contracts import (
     SEARCH_CONTRACT,
     SELECT_CONTRACT,
-    PLAN_NEXT_CONTRACT,
     UPDATE_CONTRACT,
     FINAL_CONTRACT
 )
-from src.QA_Assistant.daemon_wrapper import JVMDaemon
-from src.QA_Assistant.Searcher import search
-from src.QA_Assistant.rate_limits import gated_response, LoopStage
+from src.IR_Ensemble.QA_Assistant.daemon_wrapper import JVMDaemon
+from src.IR_Ensemble.QA_Assistant.Searcher import search
+from src.IR_Ensemble.QA_Assistant.rate_limits import gated_response, LoopStage
 
 # ───────────────────────────────────────── constants ──────────────────────────
-
-MODEL_NAME: str = os.getenv("OPENAI_RESPONSES_MODEL")
 
 BM25_RESULTS_PATH: str = os.getenv("BM25_RESULTS_PATH")
 
@@ -84,7 +82,6 @@ class BaseAgent:
         self.agent_id = str(uuid.uuid4())
         self.status: QAStatus = QAStatus.NO_ANSWER
 
-        self.plan: Optional[str] = None
         self.full_answer: Optional[str] = None
         self.summary: Optional[str] = None
 
@@ -117,29 +114,6 @@ class BaseAgent:
         """
         return "".join(f"<|{m['role']}|>\n{m['content']}\n" for m in self.history)
 
-    # ────────────────────────── public API: PLAN stage ───────────────────────
-
-    async def get_plan(self,round_num) -> str:
-        """
-        Gets the plan for the given questions.
-        """
-        context = {"questions": self.questions,"current_round":round_num,"max_rounds":self.MAX_TOOL_ROUNDS} if round != 0 else {"current_answer": self.full_answer,"current_round":round_num,"max_rounds":self.MAX_TOOL_ROUNDS}
-        prompt = PLAN_NEXT_CONTRACT + f"---\n{context.__str__()}"
-        self._record("user", prompt)
-
-        resp: Response = await gated_response(assistant_id=self.agent_id,
-                                    client=self.client, 
-                                    prompt=prompt,
-                                    stage = LoopStage.PLAN_CALL)
-        content = resp.output_text
-        self._record("assistant",content)
-        self.plan = self._extract_tag(content, "answer")
-
-        await self._log(self._serialise_history())
-        await self._log("\n----------------------\n")
-        await self.reset_logical_thread()
-        
-
     # ───────────────────── public API: INFO (search + select) ─────────────────
 
     async def get_info(self, *, first_round: bool) -> str:
@@ -149,31 +123,20 @@ class BaseAgent:
         Returns the *selected‑segments JSON* produced by the select_documents tool.
         """
 
-        if (self.plan is None) or (self.plan == ""):
-            plan = "Error generating plan, plan on the fly in your chain of thought"
-        else:
-            plan = self.plan
-
         # Build shared context fragment
         if first_round:
-            context_block = "\n\n".join([
-                "<plan>" + plan + "</plan>",
-                "<questions>" + self.questions + "</questions>",
-            ])
+            context_block = "<questions>" + self.questions + "</questions>"
         else:
-            context_block = "\n\n".join([
-                "<plan>" + plan + "</plan>",
-                "<answer>" + (self.full_answer or "") + "</answer>",
-            ])
-
+            context_block = "<current_answer>" + (self.full_answer or "") + "</current_answer>"
+            
         # ── Ask for SEARCH tool calls ────────────────────────────────────
         content = SEARCH_CONTRACT + context_block
         self._record("user", content)
         anchor: Response = await gated_response(assistant_id=self.agent_id,
                                       client=self.client,
                                       prompt=content,
-                                      stage = LoopStage.TOOL_CALL)
-        LoopStage.TOOL_CALL.value[0]["previous_response_id"] = anchor.id # update for next tool call 
+                                      stage = LoopStage.SEARCH_CALL)
+        LoopStage.SELECT_CALL.value[0]["previous_response_id"] = anchor.id # update for next tool call 
         search_calls = anchor.output_text
         self._record("assistant",search_calls)
         await self._log(f"\n------- SEARCH CALLS------\n{self._serialise_history()}")
@@ -219,7 +182,7 @@ class BaseAgent:
         resp_select: Response = await gated_response(assistant_id=self.agent_id,
                                             client=self.client,
                                             prompt=content,
-                                            stage = LoopStage.TOOL_CALL,
+                                            stage = LoopStage.SELECT_CALL,
                                             context = self._serialise_history())
         select_calls = resp_select.output_text
         await self._log(f"\n-SELECT CALLS (NOT PERSISTED IN LOGICAL THREAD)-\n{select_calls}")
@@ -241,11 +204,8 @@ class BaseAgent:
             select_calls = self._extract_tag(select_calls, "answer")
             select_calls = json.loads(select_calls)
             select_calls = select_calls["selections"][:6]
-            tasks = [self._dispatch_tool(JVMDaemon.select_documents,
-                                          **{"segment_ids": select_calls, "is_segment": True})
-                                          ]
-            selected_segments = "\n".join(json.dumps(result) 
-                                          for result in await asyncio.gather(*tasks))
+            selected_segments = json.dumps(await self._dispatch_tool(JVMDaemon.select_documents,
+                                          **{"segment_ids": select_calls, "is_segment": True}))
         except Exception as e:  # noqa: BLE001 - log & rethrow
             traceback.print_exc()
             selected_segments = f"Error performing document retrieval: instead of attempting to update the answer just rewrite the previous answer."

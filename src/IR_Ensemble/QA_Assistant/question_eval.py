@@ -1,8 +1,8 @@
 import traceback
 from typing import List,Dict,Any
 from openai import AsyncAzureOpenAI
-from src.QA_Assistant.base import BaseAgent, QAStatus
-from src.QA_Assistant.rate_limits import LoopStage
+from src.IR_Ensemble.QA_Assistant.base import BaseAgent, QAStatus
+from src.IR_Ensemble.QA_Assistant.rate_limits import LoopStage
 
 class QuestionEvalAgent(BaseAgent):
     """
@@ -12,7 +12,6 @@ class QuestionEvalAgent(BaseAgent):
         # loop until finished
         rounds = 0
         while self.status != QAStatus.FINISHED:
-            await self.get_plan(rounds)
             segments = await self.get_info(first_round= (rounds == 0))
             await self.update_answer(segments)
             rounds += 1

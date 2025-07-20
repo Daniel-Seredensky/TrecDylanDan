@@ -23,8 +23,8 @@ from openai import AsyncAzureOpenAI
 from openai.types.responses import Response, ResponseUsage
 import tiktoken
 
-from src.QA_Assistant.token_bucket import AsyncTokenBucket
-from src.QA_Assistant.answer_contracts import GLOBAL_FORMAT
+from src.IR_Ensemble.QA_Assistant.token_bucket import AsyncTokenBucket
+from src.IR_Ensemble.QA_Assistant.answer_contracts import GLOBAL_FORMAT
 
 load_dotenv()
 
@@ -39,12 +39,12 @@ class LoopStage(Enum):
     [{"max_output_tokens":3_500,"model": "gpt-4.1","previous_response_id": None}, 50_000,1]
     """
     # Previous response id should be None for PLAN call always
-    PLAN_CALL = [{"max_output_tokens":3_500,
+    SEARCH_CALL = [{"max_output_tokens":2_000,
                   "model": "gpt-4.1",
                   "previous_response_id": None,
                   "temperature":0.4,
                   "top_p":0.95}, 50_000, 1]
-    TOOL_CALL = [{"max_output_tokens":2_000,
+    SELECT_CALL = [{"max_output_tokens":2_000,
                   "model": "gpt-4.1-mini",
                   "previous_response_id": None,
                   "temperature":0.2,

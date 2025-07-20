@@ -1,131 +1,88 @@
-from openai import OpenAI
+from openai import AsyncAzureOpenAI, AsyncOpenAI
+from dotenv import load_dotenv
+import traceback
+
 import os
+import asyncio, aiofiles, uvloop
 import json
 
-def main():
-    with OpenAI() as client:
-        # Load debate format (e.g., "ping_pong")
-        debate_style = "ping_pong"
-        format_path = f"debate_formats/{debate_style}/format.json"
-        format = json.load(open(format_path))
+from src.IR_Ensemble.QA_Assistant.bucket_monitor import BucketMonitor
+from src.IR_Ensemble.QA_Assistant.Searcher import cohere_client
+from src.IR_Ensemble.QA_Assistant.daemon_wrapper import JVMDaemon 
+from src.IR_Ensemble.ContextBuilder import ContextProctor
+from src.ReportGenerator.report_generator import ReportGenerator
+from src.DebateAndReport.ReportEvaluator import ReportEvaluator
 
-        # Load the claim from the bin agent data
-        with open("BinAgent/src/src/DerivedData/Result.json", 'r', encoding='utf-8') as f:
-            claim_data = json.load(f)
-        claim = claim_data["claim"]
-        clueweb_id = claim_data.get("ClueWeb22-ID", "clueweb22-en0024-53-03398")  # fallback if not included
+MAX_ROUNDS = 5
 
-        # Load the article from the corpus
-        corpus_path = os.path.join(
-            'clueweb',
-            'TREC-LR-2024',
-            'T2',
-            'trec-2024-lateral-reading-task2-baseline-documents.jsonl'
-        )
-        document = None
+async def get_context(client: AsyncAzureOpenAI, questions: list[dict[str,str]]) -> str:
+    """
+    Get search results for a set of questions.
+    """
+    proc = ContextProctor(client, questions)
+    try: 
+        await proc.create_context()
+        # clear mem
+        del proc
+        with open(os.getenv("CONTEXT_PATH"), "r") as f: return f.read()
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
+        del proc
+        return "Error generating context."
 
-        try:
-            with open(corpus_path, 'r', encoding='utf-8') as f:
-                for line in f:
-                    try:
-                        entry = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-                    if entry.get('ClueWeb22-ID') == clueweb_id:
-                        document = entry
-                        break
-        except FileNotFoundError:
-            raise RuntimeError(f"Corpus file not found: {corpus_path}")
 
-        if document is None:
-            raise ValueError(f"Document ID {clueweb_id} not found in corpus")
+async def _main(oai_client: AsyncOpenAI,aoai_client: AsyncAzureOpenAI,topic: str) -> str:
+    # clear old context if it exists else ensure it exists
+    with open(os.getenv("CONTEXT_PATH"), "w") as f:
+        f.write("")
 
-        url = document.get('URL', '')
-        full_text = document.get('Clean-Text', '').replace('\n', ' ').strip()
+    # init agents
+    gen,eval = await ReportGenerator(client = oai_client, topic = topic), ReportEvaluator()
+    rounds = 0
+    note,context = [None]*2
 
-        # Prepare system prompts for each agent
-        system_prompts = {
-            agent["name"]: open(
-                f"debate_formats/{debate_style}/prompts/{agent['system_prompt']}"
-            ).read()
-            for agent in format["agents"]
-        }
+    # run loop
+    while rounds < MAX_ROUNDS:
+        report,note = await gen.generate_report(note,context)
+        note,questions = eval.evaluate(report = report,generator_comments = note, ir_context = context,article_text = topic)
+        if ReportEvaluator.status == "Finished":
+            break
+        context = await get_context(client = aoai_client, questions = questions)
+    return report 
 
-        debate_log = []
-        previous_response_id = None  # For conversation threading
+async def main():
+    segment_id = "<smth>"
+    topic = JVMDaemon.select_documents([segment_id],is_segment = False)
+    oai_client = AsyncOpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        model = "gpt-4.1",
+        timeout = 25,
+        max_retries = 3,
+    )
+    aoai_client = AsyncAzureOpenAI(
+        api_key=os.getenv("AZURE_OPENAI_KEY"),
+        base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version="preview",
+        timeout=60.5,
+        max_retries=3,
+    )
+    bm = BucketMonitor()
+    try: 
+        await bm.start()
+        return await _main(oai_client=oai_client,aoai_client=aoai_client,topic=topic)
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
+    finally:
+        await oai_client.close()
+        await aoai_client.close()
+        await cohere_client.aclose()
+        await JVMDaemon.stop()
+        await bm.stop()
 
-        for step in format["sequence"]:
-            agent_name = step["agent"]
-            turn_prompt_path = f"debate_formats/{debate_style}/{step['turn_prompt']}"
-            base_prompt = open(turn_prompt_path).read().strip()
-
-            # Prepare the claim section
-            claim_section = f"\n\n[CLAIM TO BE DEBATED]\n{claim}"
-
-            # Provide ~5 sentences from article for all agents
-            sentences = full_text.split('. ')
-            snippet = '. '.join(sentences[:5]).strip()
-            if not snippet.endswith('.'):
-                snippet += '.'
-
-            context_section = f"\n\n[EXCERPT FROM ARTICLE]\n{snippet}"
-
-            relevant_articles = open("ContextForTesting/Context.jsonl").read()
-            context_section += "OTHER RELEVANT ARTICLES TO CITE: " + relevant_articles
-
-            # Final user prompt
-            user_prompt = f"{base_prompt}{claim_section}{context_section}\n\nBased on the excerpt above, respond accordingly."
-
-            response = client.responses.create(
-                model="o3-mini",
-                instructions=system_prompts[agent_name],
-                input=[{"role": "user", "content": user_prompt}],
-                previous_response_id=previous_response_id,
-            )
-
-            # Save to debate log
-            response_text = response.output[1].content[0].text
-            debate_log.append({
-                "agent": agent_name,
-                "prompt": user_prompt,
-                "response": response_text
-            })
-
-            previous_response_id = response.id
-
-        # Export debate log to text file
-        with open("debate_log.txt", "w", encoding="utf-8") as log_file:
-            log_file.write("=== Debate Log ===\n\n")
-            for entry in debate_log:
-                log_file.write(f"{entry['agent']} says:\n{entry['response']}\n\n")
-
-        article_json_str = json.dumps(document, indent=2)
-
-        response = client.responses.create(
-            model="o3-mini",
-            input=[{
-                "role": "user",
-                "content": open("report_prompt.txt").read()
-                + "\n DEBATE: " + open("debate_log.txt").read()
-                + "\n ARTICLE: " + article_json_str
-                + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
-            }],
-        )
-
-        print(response.output[1].content[0].text)
-
-        response = client.responses.create(
-            model="o3-mini",
-            input=[{
-                "role": "user",
-                "content": open("report_prompt.txt").read()
-                + "\n ARTICLE: " + article_json_str
-                + "\n OTHER RELEVANT ARTICLES: " + relevant_articles
-            }],
-        )
-
-        print(response.output[1].content[0].text)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    asyncio.run(main())
