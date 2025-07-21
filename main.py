@@ -3,17 +3,18 @@ from dotenv import load_dotenv
 import traceback
 
 import os
-import asyncio, aiofiles, uvloop
-import json
+import asyncio, uvloop
 
 from src.IR_Ensemble.QA_Assistant.bucket_monitor import BucketMonitor
 from src.IR_Ensemble.QA_Assistant.Searcher import cohere_client
 from src.IR_Ensemble.QA_Assistant.daemon_wrapper import JVMDaemon 
-from IR_Ensemble.context_builder import ContextProctor
+from src.IR_Ensemble.context_builder import ContextProctor
 from src.ReportGenerator.report_generator import ReportGenerator
-from src.DebateAndReport.ReportEvaluator import ReportEvaluator
+from src.ReportEvaluator.report_evaluator import ReportEvaluator, EvalStatus
+from topics import topic1
 
-MAX_ROUNDS = 5
+load_dotenv()
+MAX_ROUNDS = 3
 
 async def get_context(client: AsyncAzureOpenAI, questions: list[dict[str,str]]) -> str:
     """
@@ -31,32 +32,32 @@ async def get_context(client: AsyncAzureOpenAI, questions: list[dict[str,str]]) 
         del proc
         return "Error generating context."
 
-
 async def _main(oai_client: AsyncOpenAI,aoai_client: AsyncAzureOpenAI,topic: str) -> str:
     # clear old context if it exists else ensure it exists
-    with open(os.getenv("CONTEXT_PATH"), "w") as f:
-        f.write("")
+    with open(os.getenv("CONTEXT_PATH"), "w") as f: f.write("")
 
     # init agents
-    gen,eval = await ReportGenerator(client = oai_client, topic = topic), ReportEvaluator()
+    gen: ReportGenerator = ReportGenerator(client = oai_client, topic = topic)
+    eval: ReportEvaluator = ReportEvaluator(client = oai_client, topic = topic)
     rounds = 0
     note,context = [None]*2
 
     # run loop
     while rounds < MAX_ROUNDS:
-        report,note = await gen.generate_report(note,context)
-        note,questions = eval.evaluate(report = report,generator_comments = note, ir_context = context,article_text = topic)
-        if ReportEvaluator.status == "Finished":
+        report,note = await gen.generate_report(context, note)
+        note,questions = await eval.evaluate(report = report, generator_comment = note, ir_context = context)
+        if eval.status == EvalStatus.PASS:
             break
         context = await get_context(client = aoai_client, questions = questions)
+        rounds += 1
     return report 
 
 async def main():
-    segment_id = "<smth>"
-    topic = JVMDaemon.select_documents([segment_id],is_segment = False)
+    #segment_id = "<smth>"
+    #topic = JVMDaemon.select_documents([segment_id],is_segment = False)
+    topic = topic1
     oai_client = AsyncOpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
-        model = "gpt-4.1",
         timeout = 25,
         max_retries = 3,
     )
@@ -83,8 +84,9 @@ async def main():
         await JVMDaemon.stop()
         await bm.stop()
 
-
-
 if __name__ == "__main__":
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(main())
+
+"""
+"""

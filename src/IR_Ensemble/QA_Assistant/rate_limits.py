@@ -141,11 +141,12 @@ async def gated_response(
 
     result: Response | None = None
     ids: dict[str, str] = {}
-    is_plan_call = stage == LoopStage.PLAN_CALL
+    is_search_call = stage == LoopStage.SEARCH_CALL
 
     try:
-        if is_plan_call:
-            # Planner uses its own global bucket
+        if is_search_call:
+            # Planner uses its own global bucket 
+            # Note: Planner is deprecated, the search query generation now uses the plan token bucket
             async with plan_tok_limiter.acquire(reserve) as plan_id, \
                        plan_req_limiter.acquire(1):
                 ids["plan"] = plan_id
@@ -177,7 +178,7 @@ async def gated_response(
         assistant_id=assistant_id,
         used_tokens=result.usage.total_tokens,
         reserved=reserve,
-        is_plan_call=is_plan_call,
+        is_plan_call=is_search_call,
         ids=ids,
     )
     return result

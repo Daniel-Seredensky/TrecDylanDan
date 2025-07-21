@@ -10,16 +10,16 @@ to *4* [queries,master_query] pairs in your "searches" array. As well as up to *
 <answer>
 {
 "searches":[
-    {
-        "queries": [
-            <query1>,
-            <query2>,
-            ...
-        ],
-        "master_query": "master_query"
-    },
-    ...
-] 
+        {
+            "queries": [
+                <query1>,
+                <query2>,
+                ...
+            ],
+            "master_query": "master_query"
+        },
+        ...
+    ] 
 }
 <answer>
 ```
@@ -36,10 +36,10 @@ select up to *6* segment_ids for further exploration
 <answer>
 {
 "selections":[
-    <segment_id1>,
-    <segment_id2>,
-    ...
-]
+        <segment_id1>,
+        <segment_id2>,
+        ...
+    ]
 }
 </answer>
 ```
@@ -62,13 +62,17 @@ Immediately upon marking a question as true it will be removed from the next rou
         {
             "question": <verbatim user question>,
             "doc_context": <verbatim doc context>,
-            "answer": [
+            "answer": 
                 {
                     "text": <text>,
-                    "citations": <exact marco segment_id>,
-                },
-                ...
-            ]
+                    "citations": [
+                        {
+                            "summary": <summarize the info found from the segment>,
+                            "citation": <segment_id>,
+                        },
+                        ...
+                    ]
+                }
             "finished": <true if fully confident and finished working, false otherwise>
         },
         ...

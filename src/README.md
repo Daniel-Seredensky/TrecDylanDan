@@ -173,16 +173,15 @@ flowchart TD
 
 ``` bash
 
-javac -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src/QA_Assistant/Search/*.java
+javac -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src/IR_Ensemble/QA_Assistant/Search/*.java
 
 ```
 
 **Execution**
 
 ``` bash
-java -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src.QA_Assistant.Search.DocumentSelection
-java -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src.QA_Assistant.Search.Searcher
+java -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src.IR_Ensemble.QA_Assistant.Search.DocumentSelection
+java -cp "src/IR_Ensemble/QA_Assistant/Search/lib/*:." src.IR_Ensemble.QA_Assistant.Search.Searcher
 ```
-
 
 # Current plans

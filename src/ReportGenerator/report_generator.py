@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 from typing import List, Optional
 
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from openai.types.responses import Response
 from src.ReportGenerator.prompts import SYSTEM_PROMPT
@@ -30,16 +31,17 @@ class ReportGenerator:
         topic,
         client: AsyncOpenAI,
     ) -> None:
+        load_dotenv()
         self.topic = topic
         self.client = client
 
-        self.cur_report: str
+        self.cur_report: str = None
         self.eval_notes: List[str] = []
-        self.my_notes = List[str] = []
+        self.my_notes: List[str] = []
         self.latest_note: str
 
         # artefacts
-        self.LOG_PATH = os.getenv("REPORT_LOG_PATH")
+        self.LOG_PATH = os.getenv("REPORT_PATH")
         _ensure_file(self.LOG_PATH)
             
 
@@ -58,16 +60,17 @@ class ReportGenerator:
         Generates a report based on the topic, IR context, evaluation notes, and previous report
         """
         self.eval_notes.append(note)
-        prompt = f"{SYSTEM_PROMPT}\nTopic:\n{self.topic}\nPrevious report: \n{self.cur_report or "First round no report yet"}\nYour notes:\n{self.serialize_notes(True)}Evaluation notes: \n{self.serialize_notes(False)}\nIR context: \n{ir_context or "First round no IR context yet"}\n"
+        prompt = f"{SYSTEM_PROMPT}\nTopic:\n{self.topic}\nPrevious report: \n{self.cur_report or 'First round no report yet'}\nYour notes:\n{self.serialize_notes(True)}Evaluation notes: \n{self.serialize_notes(False)}\nIR context: \n{ir_context or 'First round no IR context yet'}\n"
         resp: Response = await self.client.responses.create(
             model="gpt-4.1",
             input = prompt,
             temperature=0.25
         )
+        text = resp.output_text
         self._log("\n=========\n")
         self._log(f"Prompt:\n{prompt}\n")
-        self._log(f"Response:\n{resp.output_text}\n")
-        self._update_status(content = resp.output_text)
+        self._log(f"Response:\n{text}\n")
+        self._update_status(content = text)
         return self.cur_report,self.my_notes[-1]
 
 
