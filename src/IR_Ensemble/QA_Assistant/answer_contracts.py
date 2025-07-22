@@ -1,34 +1,36 @@
 SEARCH_CONTRACT = \
 """
-Given the following plan and set of questions, return a json of bm25 optimized keyword 
+Given the following question and context relative to a topic document, return a json of bm25 optimized keyword 
 queries (MARCO search) and a master query (used for semantic rerank). You may have up 
 to *4* [queries,master_query] pairs in your "searches" array. As well as up to *4* queries per search, not including the master query.
 
+
 > You *MUST* answer with the following format:
+> Do **NOT** forget to close any tags or brackets.
 ``` 
 <cot> Brief cot summary </cot>
 <answer>
 {
 "searches":[
         {
-            "queries": [
-                <query1>,
-                <query2>,
-                ...
-            ],
-            "master_query": "master_query"
+        "queries": [
+            <query1>,
+            <query2>,
+            ...
+        ],
+        "master_query": <master_query>
         },
         ...
     ] 
-}
-<answer>
+} # Do not forget to close curly brackets
+</answer>
 ```
 """
 
 SELECT_CONTRACT = \
 """
-Given previous context and following search result metadata 
-select up to *6* segment_ids for further exploration
+Given the previou questions, topic context, and the search result metadata choose the most promising sources to answer the question.
+Select up to *6* segment_ids for further exploration
 
 > You *MUST* answer with the following format
 ``` 
@@ -47,10 +49,12 @@ select up to *6* segment_ids for further exploration
 
 UPDATE_CONTRACT = \
 """
+You are a **Information Retrieval Assistant** -- updating an answer to a question.
 Given the previous context and the search results given below update your answer status
 *DO NOT* remove any existing citations, but you may add new ones.
 Immediately upon marking a question as true it will be removed from the next round.
 > Since this is a fact checking assignment the document context is any relevant information from the document we are fact checking that you may need in your answer.
+> Do **NOT** cite anything other than a Marco segment id, leave blank citations array if no citations exist.
 
 
 > You *MUST* answer with the following format
@@ -67,7 +71,7 @@ Immediately upon marking a question as true it will be removed from the next rou
                     "text": <text>,
                     "citations": [
                         {
-                            "summary": <summarize the info found from the segment>,
+                            "summary": <summarize the info used from the citation>,
                             "citation": <segment_id>,
                         },
                         ...

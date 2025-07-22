@@ -128,19 +128,15 @@ Report:
 {
     "responses": [
         {
-            "text": "Japan has announced plans to begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. The government asserts that the water will be filtered and diluted to safe levels before release, following years of study and recommendations from scientific advisors. The International Atomic Energy Agency has expressed support for the plan, deeming it scientifically reasonable. The decision is driven by the lack of storage space, as over a million tons of contaminated water are currently held at the site.",
+            "text": "Japan announced plans to begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. The water, currently stored in large tanks at the plant, has accumulated from efforts to cool damaged reactors and from rain and groundwater infiltration following the 2011 earthquake and tsunami. Officials stated that the water would be filtered and diluted to meet safety standards before release, citing a lack of storage space as a key reason for the decision.",
             "citations": []
         },
         {
-            "text": "The contaminated water at Fukushima originates from efforts to cool damaged reactors, as well as rain and groundwater infiltration. Storage tanks at the facility now occupy enough space to fill 500 Olympic-sized swimming pools. Japanese officials argue that postponing the discharge would hinder the ongoing decommissioning process of the plant, which was severely damaged by the 2011 earthquake and tsunami.",
+            "text": "The decision has sparked significant protests from local residents, fishermen, and environmental groups, who are concerned about the potential environmental impact and the government's previous assurances that water would not be released without local support. Neighboring countries, including China and South Korea, have also criticized the move, calling it irresponsible and summoning Japanese diplomats to express their concerns.",
             "citations": []
         },
         {
-            "text": "The announcement has sparked significant protests in Japan, with residents and local fishermen expressing strong opposition. Critics argue that the government is breaking previous promises not to release the water without fishermen's support. Environmental groups, such as Greenpeace, contend that continued storage is preferable to ocean discharge, citing concerns over further contamination of the Pacific.",
-            "citations": []
-        },
-        {
-            "text": "Japan's plan has also drawn criticism from neighboring countries, including China and South Korea, who have labeled the decision irresponsible and summoned Japanese diplomats for explanations. The release process is expected to take decades, and critics have called for independent monitoring to ensure environmental safety throughout the discharge period.",
+            "text": "Japanese officials, including Prime Minister Yoshihide Suga, emphasized that the plan follows years of scientific study and is supported by the International Atomic Energy Agency as a scientifically reasonable solution. Critics, however, argue for continued storage and independent monitoring to ensure the safety of the discharged water, noting that the release process will take decades to complete.",
             "citations": []
         }
     ]
@@ -148,30 +144,34 @@ Report:
 IR Context:
 First round no IR context yet
 Generator Comments:
-0. Evaluation note: This is the first round and there is no IR context, so all information is based solely on the topic summary. Citations arrays are left empty as required. No questions were left unanswered given the available input. Future rounds may benefit from additional IR context for deeper coverage or verification.
+0. Evaluation note: This is the first round and there is no IR context or segment_ids available, so all citations are left empty. The report covers the announcement, rationale, public and international reactions, and safety assurances as described in the topic. If segment_ids become available in future rounds, citations will be updated accordingly.
 
  Your Comments:
 
-<cot> My evaluation will focus on how well the report summarizes the main points from the topic document, the accuracy of the information presented, and whether the report covers all significant aspects (protests, government rationale, international response, technical details, and criticisms). Since this is the first round and no IR context is available, citation arrays are correctly left empty, but I will note this in citation quality. I will check for any missing details, such as the specific statements from officials, the role of the IAEA, and the timeline for the water release. I will also assess whether the report prioritizes the most newsworthy elements and maintains a clear, neutral style. Each rubric field will be justified: coverage and completeness may be slightly reduced if any nuance or detail is missing; citation quality will be marked down due to the absence of citations, even though this is expected in round one; style and prioritization will be rated based on clarity and focus.</cot>
-<note> In future rounds, please add inline citations to support each factual claim, especially when quoting officials or referencing international reactions. Consider including more direct quotes from the topic document to strengthen accuracy and attribution. Expand slightly on the technical process of water treatment and dilution, and clarify the timeline for both the start and duration of the discharge. Ensure that all stakeholder perspectives, including those of local fishermen and environmental groups, are explicitly attributed.</note>
+<cot> Since this is the first round and no IR context or segment_ids are available, I will focus on the report's factual alignment with the topic document, coverage of key points, and clarity. The report summarizes the main announcement, rationale, public and international reactions, and safety assurances, which are all present in the topic. However, there are no citations, which is a limitation but understandable given the generator's note. I will grade citation quality lower due to this, but not penalize coverage or accuracy if the content is otherwise correct. I will also check for any missing major points (e.g., details about the scale of water storage, specific protestor or critic quotes, or the timeline for release). Completeness and prioritization will be slightly reduced if any such details are omitted. Style will be judged on clarity and conciseness.</cot>
+<note> In future rounds, once IR context or segment_ids are available, please add precise citations to support each factual claim. Consider including more specific details, such as the volume of water stored (over a million tons), the analogy to Olympic-sized swimming pools, and direct quotes from critics or officials to strengthen completeness and prioritization. Also, clarify the projected timeline for the water release process (decades) and the call for independent monitoring, as these are notable points in the topic document.</note>
 <ir> 
 {
   "questions": [
     {
-      "question": "What specific methods will be used to filter and dilute the radioactive water before discharge?",
-      "context": "The report mentions the water will be 'filtered and diluted to safe levels' but does not specify the process."
+      "question": "What is the total volume of contaminated water currently stored at the Fukushima plant, and how is this volume contextualized?",
+      "context": "The topic document mentions 'more than a million tons' and compares it to '500 Olympic-sized swimming pools.'"
     },
     {
-      "question": "What are the exact statements or positions of the International Atomic Energy Agency regarding the plan?",
-      "context": "The report says the IAEA supports the plan as 'scientifically reasonable' but does not provide direct quotes or details."
+      "question": "What are the specific promises or assurances previously made to local fishermen regarding the water release?",
+      "context": "The topic document references a statement by Kanji Tachiya about a promise not to release water without fishermen's support."
     },
     {
-      "question": "What promises did the Japanese government make to local fishermen regarding the water release, and how are these being addressed?",
-      "context": "The report references broken promises to fishermen but lacks detail on the nature of these promises."
+      "question": "What is the expected duration for the complete release of the treated water into the ocean?",
+      "context": "The topic document states that the release will take decades to complete."
     },
     {
-      "question": "What independent monitoring mechanisms are being proposed or implemented to verify the safety of the discharged water?",
-      "context": "The report mentions calls for independent monitoring but does not specify any plans or agencies involved."
+      "question": "What independent monitoring measures are being proposed or requested to ensure the safety of the discharged water?",
+      "context": "Critics in the topic document call for independent monitoring to verify radiation levels."
+    },
+    {
+      "question": "Are there any direct quotes from critics, such as Greenpeace or local fisheries representatives, that should be included for completeness?",
+      "context": "The topic document includes quotes from Shaun Burnie (Greenpeace) and Kanji Tachiya (fisheries cooperative)."
     }
   ]
 }
@@ -184,6 +184,390 @@ Generator Comments:
 "style": 4,
 "prioritization": 4,
 "completeness": 3,
-"comments": "The report accurately summarizes the main facts and perspectives from the topic document, including government rationale, protests, and international criticism. However, it omits some technical details about the water treatment process and lacks direct quotes from key stakeholders. Citation quality is low due to the absence of inline citations, though this is expected in the first round. The style is clear and neutral, and the report prioritizes the most important elements, but completeness is reduced by missing specifics on monitoring and stakeholder promises."
+"comments": "The report accurately summarizes the main points from the topic document, including the announcement, rationale, and reactions. However, it omits some specific details such as the exact volume of water, the analogy to Olympic-sized pools, and direct quotes from critics and officials. Citation quality is low due to the absence of citations, though this is justified by the lack of IR context. Style is clear and concise, but completeness and prioritization could be improved by including more specific facts and direct statements from stakeholders."
+}
+</eval>
+You are the **Report‑Evaluator Agent** in a closed‑loop fact‑checking pipeline.  
+Your output **must** follow the exact tag‑based schema below so that the
+orchestration code can parse it.  
+❗ Never emit text outside the allowed tags.
+
+───────────────────────────────  TASKS  ───────────────────────────────
+1. <cot> … </cot>  
+   • Write your private reasoning plan here (≤ 200 words).  
+   • Summarise how you will grade, what to double‑check, and which gaps to probe.
+> Include a brief explanation of why you gave the grade you did for each field of the rubric 
+
+2. <note> … </note>  
+   • 2‑4 sentences addressed to the Report‑Generator.  
+   • Be specific and constructive: how to fix shortcomings, tighten citations, or
+     expand coverage.  
+   • No generic praise; every sentence should have an actionable point.
+
+3. <ir> { … } </ir>  
+   • JSON with a single key **"questions"** whose value is an array (≤ 10).  
+   • Each item:  
+     ```json
+     {
+       "question": "<information‑need>",
+       "context": "<snippet or segment_id(s) that show why this info is needed>"
+     }
+     ```  
+   • Target genuine evidence gaps; avoid redundancy or trivia.
+
+4. <eval> { … } </eval>  
+   • JSON rubric with **exactly** these keys (scores 1‑5):  
+     - "coverage"  
+     - "accuracy"  
+     - "citation_quality"  
+     - "style"  
+     - "prioritization"  
+     - "completeness"  
+   • Optionally include **"comments"** (string, 3‑5 sentences) for strengths /
+     weaknesses.  
+   • Use integers only; justify scores in *comments*, not inline.
+
+───────────────────────  STRICT OUTPUT RULES  ────────────────────────
+• Tags **must** appear in the order: <cot>, <note>, <ir>, <eval>.  
+• No blank lines *between* tags.  
+• JSON inside <ir> and <eval> must be syntactically valid (double quotes, commas,
+  braces).  
+• Do **NOT** include markdown fences, headings, or extra prose outside tags.  
+• Do **NOT** repeat the report, IR context, or topic text.
+
+──────────────────────────  INPUT YOU RECEIVE  ───────────────────────
+You will be given:  
+• `Topic document` (string)  
+• `Report` (structured JSON)  
+• `IR Context` (string)  
+• Past generator/evaluator comments (serialised list)
+
+Base every judgement solely on this material.  
+If information is missing, reflect that with lower scores, note it in
+<note>, and pose IR questions.
+
+Remember: **Output must be valid UTF‑8 plain text in the specified tag
+structure.** Any deviation will break the pipeline.
+
+> Note: If the generator has already flagged questions they cannot answer. Do not repeat these or penalize the generator for not having that information.
+
+### **Example output:**
+
+```
+<cot> Plan out your evaluation here, note the good, the bad, and relevant planning steps.</cot>
+<note> Your note to the report generator goes here. </note>
+<ir> 
+{
+questions: [
+   {
+    "question": <question1>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   {
+    "question": <question2>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   ...
+]
+}
+</ir>
+<eval> 
+{
+"coverage": 4,
+"accuracy": 5,
+"citation_quality": 3,
+"style": 4,
+"prioritization": 4,
+"completeness": 3,
+}
+</eval>
+```
+
+Begin your evaluation now.
+
+Topic document:
+ Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific, sparking protests - CBS News
+World
+Protests as Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific
+By Lucy Craft
+April 13, 2021 / 7:07 AM / CBS News
+Tokyo — Japan said Tuesday that it would start discharging treated radioactive water from the crippled Fukushima nuclear power plant into the Pacific Ocean within two years. Officials in Tokyo said the water would be filtered and diluted to safe levels first, but many residents remain firmly opposed to the plan.
+Protesters gathered outside Prime Minister Yoshihide Suga's residence in downtown Tokyo to denounce the government's decision.
+More than a million tons of contaminated water is currently being stored at the Fukushima power plant in a massive tank farm big enough to fill 500 Olympic-sized swimming pools. The wastewater comes from water pumped in to cool the plant's damaged reactors and also rain and groundwater that seeps into the facility, which was seriously damaged by the 2011 earthquake and subsequent tsunami that ravaged Japan's northeast coast.
+The unit three reactor building and storage tanks for contaminated water at the Tokyo Electric Power Company's (TEPCO) Fukushima Daiichi nuclear power plant in Okuma, Fukushima prefecture, Japan,   February 3, 2020.KAZUHIRO NOGI/AFP/Getty
+The government says it has simply run out of room to store all the water. The plan to dump the water into the ocean first came to light in the autumn of last year, when Japanese news outlets cited anonymous officials as saying the decision had been taken.
+"We can't postpone a decision on the plan to deal with the... processed water, to prevent delays in the decommission work of the Fukushima Daiichi nuclear power plant," Chief Cabinet Secretary Katsunobu Kato said in October 2020, without commenting directly on the plan or its timing.
+On Tuesday, Suga said that after years of study, his scientific advisors had concluded that ocean discharge was the most feasible way to cope with the surplus of contaminated water.
+"The International Atomic Energy Agency also supports this plan as scientifically reasonable," he said.
+But the decision to dump Fukushima wastewater into the ocean has drawn fire from neighboring Asian countries and local fishermen along Japan's coast.
+China called the decision "extremely irresponsible," and South Korea summoned the Japanese ambassador in Seoul over the matter.
+Japan plans to release wastewater into ocean
+01:59
+"They told us that they wouldn't release the water into the sea without the support of fishermen," Kanji Tachiya, who leads a local cooperative of fisheries in Fukushima, told national broadcaster NHK ahead of the announcement on Tuesday. "We can't back this move to break that promise and release the water into the sea unilaterally."
+Critics, including Greenpeace nuclear specialist Shaun Burnie, argue that Japan should continue storing the wastewater near the stricken Fukushima plant.
+"Deliberately discharging and contaminating the Pacific Ocean after decades of contamination already from the nuclear industry and nuclear weapons testing is just not acceptable," he said.
+The actual release of water from the Fukushima plant will take decades to complete. Critics have called on Japan's government to at least ensure that independent monitoring is in place to verify the level of radiation in the discharged water is safe for the environment.
+In:
+fukushima daiichi nuclear disaster
+First published on April 13, 2021 / 4:53 AM
+© 2021 CBS Interactive Inc. All Rights Reserved.
+ 
+Report:
+{
+    "responses": [
+        {
+            "text": "Japan announced plans to begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. The decision was driven by the lack of storage space, as more than a million tons of contaminated water—enough to fill approximately 500 Olympic-sized swimming pools—has accumulated from efforts to cool damaged reactors and from rain and groundwater infiltration following the 2011 earthquake and tsunami.",
+            "citations": [ "msmarco_v2.1_doc_34_8611515#0_19233573" ]
+        },
+        {
+            "text": "The Japanese government and TEPCO had previously promised local fishermen that contaminated water would not be released without their consent. However, this assurance was broken, leading to strong opposition from fishermen and fishing cooperatives, who criticized the decision-making process as undemocratic and lacking transparency.",
+            "citations": [ "msmarco_v2.1_doc_48_1028452139#4_1849573182", "msmarco_v2.1_doc_40_1120198376#1_2364446253" ]
+        },
+        {
+            "text": "The decision has sparked significant protests from local residents, environmental groups, and neighboring countries such as China and South Korea, who have called the move irresponsible. Shaun Burnie, a Greenpeace nuclear specialist, criticized the plan, stating that 'deliberately discharging and contaminating the Pacific Ocean after decades of contamination already from the nuclear industry and nuclear weapons testing is just not acceptable.'",
+            "citations": [ "msmarco_v2.1_doc_36_886589907#1_1763847164" ]
+        },
+        {
+            "text": "The release of treated water is expected to take decades to complete. Critics have called for independent monitoring to verify that radiation levels in the discharged water are safe for the environment. The International Atomic Energy Agency (IAEA) has confirmed that radiation levels in sampled water are substantially below operational targets, based on monitoring data, and continues to assess the technical feasibility and safety of the discharge.",
+            "citations": [ "msmarco_v2.1_doc_43_496550983#0_1091491618" ]
+        }
+    ]
+}
+IR Context:
+{"question": "Are there any direct quotes from critics, such as Greenpeace or local fisheries representatives, that should be included for completeness?", "doc_context": "The topic document includes quotes from Shaun Burnie (Greenpeace) and Kanji Tachiya (fisheries cooperative).", "answer": {"text": "Yes, there are direct quotes from Shaun Burnie, a Greenpeace senior nuclear specialist, expressing concerns about radioactive isotopes in the water and potential genetic damage, which supports the inclusion of Greenpeace's critical perspective. However, no direct quotes from Kanji Tachiya or other local fisheries representatives were found in the provided segments.", "citations": [{"summary": "Shaun Burnie of Greenpeace criticizes the plan to release water from Fukushima, highlighting radioactive isotopes and potential genetic damage.", "citation": "msmarco_v2.1_doc_36_886589907#1_1763847164"}]}, "finished": true}
+{"question": "What is the expected duration for the complete release of the treated water into the ocean?", "doc_context": "The topic document states that the release will take decades to complete.", "answer": {"text": "The release of the treated water into the ocean is expected to take decades to complete, as stated in the topic document. No additional precise timeline details were found in the search results.", "citations": []}, "finished": true}
+{"question": "What independent monitoring measures are being proposed or requested to ensure the safety of the discharged water?", "doc_context": "Critics in the topic document call for independent monitoring to verify radiation levels.", "answer": {"text": "The topic document mentions critics calling for independent monitoring to verify radiation levels in the discharged water. The IAEA report confirms that radiation levels in sampled water are substantially below operational targets set by TEPCO, based on monitoring data. TEPCO analyzes the quality of groundwater before discharge and publicly announces results. The Japanese government provides reports to the IAEA, which assesses and confirms the technical feasibility and safety of the discharge. However, no specific independent monitoring measures or proposals requested by critics were found in the search results.", "citations": [{"summary": "IAEA report confirms radiation levels in discharged water are substantially below operational targets based on monitoring.", "citation": "msmarco_v2.1_doc_43_496550983#0_1091491618"}]}, "finished": true}
+{"question": "What is the total volume of contaminated water currently stored at the Fukushima plant, and how is this volume contextualized?", "doc_context": "The topic document mentions 'more than a million tons' and compares it to '500 Olympic-sized swimming pools.'", "answer": {"text": "The total volume of contaminated water currently stored at the Fukushima plant is more than a million tons. This volume is contextualized by comparing it to approximately 500 Olympic-sized swimming pools, highlighting the massive scale of the stored water.", "citations": [{"summary": "The water volume is described as more than a million tons and compared to 500 Olympic-sized swimming pools.", "citation": "msmarco_v2.1_doc_34_8611515#0_19233573"}]}, "finished": true}
+{"question": "What are the specific promises or assurances previously made to local fishermen regarding the water release?", "doc_context": "The topic document references a statement by Kanji Tachiya about a promise not to release water without fishermen's support.", "answer": {"text": "The government and TEPCO had promised local fishermen that contaminated water would not be released without their consent. However, this promise was broken, as the government decided to proceed with releasing treated water despite strong opposition from fishermen and fishing cooperatives. Environmental groups and fishermen's representatives have criticized the decision-making process as undemocratic and lacking transparency.", "citations": [{"summary": "Environmental groups and fishermen state the promise not to release water without fishermen's support was broken.", "citation": "msmarco_v2.1_doc_48_1028452139#4_1849573182"}, {"summary": "Prime Minister Suga met with fishing federation president who maintained opposition despite government requests.", "citation": "msmarco_v2.1_doc_40_1120198376#1_2364446253"}]}, "finished": true}
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Used queries focused on volume of contaminated water and promises to fishermen. Found relevant segments confirming volume over a million tons and broken promises to fishermen.\", \"seen_ids\": [\"msmarco_v2.1_doc_34_8611515#0_19233573\", \"msmarco_v2.1_doc_48_1028452139#4_1849573182\", \"msmarco_v2.1_doc_40_1120198376#1_2364446253\"]}]}"}
+===================================
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Initial round found IAEA report confirming radiation levels below targets but no detailed independent monitoring proposals or exact release duration beyond 'decades'.\", \"seen_ids\": [\"msmarco_v2.1_doc_43_496550983#0_1091491618\", \"msmarco_v2.1_doc_41_1755894628#10_2743963429\", \"msmarco_v2.1_doc_35_751281316#3_1821072442\", \"msmarco_v2.1_doc_18_1537746005#9_1733184852\", \"msmarco_v2.1_doc_00_554534304#11_1012885606\", \"msmarco_v2.1_doc_39_858631963#6_1750259909\"]}, {\"summary\": \"Additional documents confirm TEPCO's pre-discharge monitoring and public announcements, IAEA's receipt of reports and assessments, and critics' calls for independent monitoring without concrete proposals.\", \"seen_ids\": [\"msmarco_v2.1_doc_52_43359733#3_56562483\", \"msmarco_v2.1_doc_48_1028452139#3_1849571204\", \"msmarco_v2.1_doc_38_1299410557#12_2642740866\", \"msmarco_v2.1_doc_36_886589907#3_1763851545\", \"msmarco_v2.1_doc_40_230163566#11_504499708\"]}]}"}
+===================================
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Searched for direct quotes from Greenpeace and fisheries representatives. Found direct quotes from Shaun Burnie (Greenpeace) but no direct quotes from Kanji Tachiya or fisheries representatives in the selected segments.\", \"seen_ids\": [\"msmarco_v2.1_doc_36_886589907#1_1763847164\", \"msmarco_v2.1_doc_06_271315130#8_486564900\", \"msmarco_v2.1_doc_39_541097801#4_1147444098\", \"msmarco_v2.1_doc_18_465403740#5_524630013\", \"msmarco_v2.1_doc_16_1613701867#14_1817789426\", \"msmarco_v2.1_doc_06_277912952#0_492382807\"]}]}"}
+Generator Comments:
+0. Evaluation note: This is the first round and there is no IR context or segment_ids available, so all citations are left empty. The report covers the announcement, rationale, public and international reactions, and safety assurances as described in the topic. If segment_ids become available in future rounds, citations will be updated accordingly.
+1. Evaluation note: The IR context provided segment_ids for the volume of water, broken promises to fishermen, IAEA monitoring, and a direct quote from Greenpeace. No direct quotes from Kanji Tachiya or other fisheries representatives were found, so only the Greenpeace quote is included. The projected timeline is cited as “decades,” with no more precise duration available. Critics’ calls for independent monitoring are mentioned, but no detailed proposals were found. All claims are now supported by citations where available, as requested in previous evaluator notes.
+
+ Your Comments:
+0. Evaluation note: In future rounds, once IR context or segment_ids are available, please add precise citations to support each factual claim. Consider including more specific details, such as the volume of water stored (over a million tons), the analogy to Olympic-sized swimming pools, and direct quotes from critics or officials to strengthen completeness and prioritization. Also, clarify the projected timeline for the water release process (decades) and the call for independent monitoring, as these are notable points in the topic document.
+<cot> My evaluation will focus on whether the report accurately and thoroughly covers the main points from the topic document: the announcement and rationale for the water release, the scale of stored water, the broken promise to fishermen, the range of protests and criticisms (including direct quotes), the projected timeline, and the monitoring/safety assurances. I will check if all claims are properly cited, if the most important facts are prioritized, and if the style is clear and concise. I will also look for any missing direct quotes (e.g., from Kanji Tachiya), and whether the report overstates or omits any key details. For each rubric field: Coverage is strong, as all major points are addressed. Accuracy is high, with no factual errors. Citation quality is good but not perfect—some claims (e.g., IAEA's specific statements) could use more direct citation or clarification. Style is clear and neutral. Prioritization is solid, with the most newsworthy elements foregrounded. Completeness is slightly limited by the absence of a direct quote from Kanji Tachiya and lack of detail on independent monitoring proposals. </cot>
+<note> Please try to include a direct quote from Kanji Tachiya or another fisheries representative if available, as this would strengthen completeness and balance. For the IAEA's assessment, clarify whether the cited monitoring data refers specifically to the planned discharge or to general water samples, and ensure the citation directly supports the claim. If no further details on independent monitoring proposals exist, briefly note this in the report for transparency. </note>
+<ir> 
+{
+  "questions": [
+    {
+      "question": "Is there a direct quote from Kanji Tachiya or another fisheries representative regarding the broken promise or their opposition?",
+      "context": "The topic document includes a quote from Kanji Tachiya about the promise not to release water without fishermen's support, but the report does not include a direct quote."
+    },
+    {
+      "question": "Does the IAEA statement cited refer specifically to the planned discharge process, and what are the exact findings or assurances?",
+      "context": "The report references IAEA confirmation of safety, but the citation should be checked for specificity and directness."
+    }
+  ]
+}
+</ir>
+<eval> 
+{
+"coverage": 5,
+"accuracy": 5,
+"citation_quality": 4,
+"style": 5,
+"prioritization": 5,
+"completeness": 4,
+"comments": "The report covers all major aspects of the topic, including the rationale, scale, protests, broken promises, and international reactions, with accurate and well-structured information. Most claims are well-cited, but the IAEA citation could be more precise, and the absence of a direct quote from Kanji Tachiya slightly limits completeness. The style is clear and neutral, and the most important facts are prioritized. Overall, this is a strong and reliable summary with minor areas for improvement."
+}
+</eval>
+You are the **Report‑Evaluator Agent** in a closed‑loop fact‑checking pipeline.  
+Your output **must** follow the exact tag‑based schema below so that the
+orchestration code can parse it.  
+❗ Never emit text outside the allowed tags.
+
+───────────────────────────────  TASKS  ───────────────────────────────
+1. <cot> … </cot>  
+   • Write your private reasoning plan here (≤ 200 words).  
+   • Summarise how you will grade, what to double‑check, and which gaps to probe.
+> Include a brief explanation of why you gave the grade you did for each field of the rubric 
+
+2. <note> … </note>  
+   • 2‑4 sentences addressed to the Report‑Generator.  
+   • Be specific and constructive: how to fix shortcomings, tighten citations, or
+     expand coverage.  
+   • No generic praise; every sentence should have an actionable point.
+
+3. <ir> { … } </ir>  
+   • JSON with a single key **"questions"** whose value is an array (≤ 10).  
+   • Each item:  
+     ```json
+     {
+       "question": "<information‑need>",
+       "context": "<snippet or segment_id(s) that show why this info is needed>"
+     }
+     ```  
+   • Target genuine evidence gaps; avoid redundancy or trivia.
+
+4. <eval> { … } </eval>  
+   • JSON rubric with **exactly** these keys (scores 1‑5):  
+     - "coverage"  
+     - "accuracy"  
+     - "citation_quality"  
+     - "style"  
+     - "prioritization"  
+     - "completeness"  
+   • Optionally include **"comments"** (string, 3‑5 sentences) for strengths /
+     weaknesses.  
+   • Use integers only; justify scores in *comments*, not inline.
+
+───────────────────────  STRICT OUTPUT RULES  ────────────────────────
+• Tags **must** appear in the order: <cot>, <note>, <ir>, <eval>.  
+• No blank lines *between* tags.  
+• JSON inside <ir> and <eval> must be syntactically valid (double quotes, commas,
+  braces).  
+• Do **NOT** include markdown fences, headings, or extra prose outside tags.  
+• Do **NOT** repeat the report, IR context, or topic text.
+
+──────────────────────────  INPUT YOU RECEIVE  ───────────────────────
+You will be given:  
+• `Topic document` (string)  
+• `Report` (structured JSON)  
+• `IR Context` (string)  
+• Past generator/evaluator comments (serialised list)
+
+Base every judgement solely on this material.  
+If information is missing, reflect that with lower scores, note it in
+<note>, and pose IR questions.
+
+Remember: **Output must be valid UTF‑8 plain text in the specified tag
+structure.** Any deviation will break the pipeline.
+
+> Note: If the generator has already flagged questions they cannot answer. Do not repeat these or penalize the generator for not having that information.
+
+### **Example output:**
+
+```
+<cot> Plan out your evaluation here, note the good, the bad, and relevant planning steps.</cot>
+<note> Your note to the report generator goes here. </note>
+<ir> 
+{
+questions: [
+   {
+    "question": <question1>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   {
+    "question": <question2>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   ...
+]
+}
+</ir>
+<eval> 
+{
+"coverage": 4,
+"accuracy": 5,
+"citation_quality": 3,
+"style": 4,
+"prioritization": 4,
+"completeness": 3,
+}
+</eval>
+```
+
+Begin your evaluation now.
+
+Topic document:
+ Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific, sparking protests - CBS News
+World
+Protests as Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific
+By Lucy Craft
+April 13, 2021 / 7:07 AM / CBS News
+Tokyo — Japan said Tuesday that it would start discharging treated radioactive water from the crippled Fukushima nuclear power plant into the Pacific Ocean within two years. Officials in Tokyo said the water would be filtered and diluted to safe levels first, but many residents remain firmly opposed to the plan.
+Protesters gathered outside Prime Minister Yoshihide Suga's residence in downtown Tokyo to denounce the government's decision.
+More than a million tons of contaminated water is currently being stored at the Fukushima power plant in a massive tank farm big enough to fill 500 Olympic-sized swimming pools. The wastewater comes from water pumped in to cool the plant's damaged reactors and also rain and groundwater that seeps into the facility, which was seriously damaged by the 2011 earthquake and subsequent tsunami that ravaged Japan's northeast coast.
+The unit three reactor building and storage tanks for contaminated water at the Tokyo Electric Power Company's (TEPCO) Fukushima Daiichi nuclear power plant in Okuma, Fukushima prefecture, Japan,   February 3, 2020.KAZUHIRO NOGI/AFP/Getty
+The government says it has simply run out of room to store all the water. The plan to dump the water into the ocean first came to light in the autumn of last year, when Japanese news outlets cited anonymous officials as saying the decision had been taken.
+"We can't postpone a decision on the plan to deal with the... processed water, to prevent delays in the decommission work of the Fukushima Daiichi nuclear power plant," Chief Cabinet Secretary Katsunobu Kato said in October 2020, without commenting directly on the plan or its timing.
+On Tuesday, Suga said that after years of study, his scientific advisors had concluded that ocean discharge was the most feasible way to cope with the surplus of contaminated water.
+"The International Atomic Energy Agency also supports this plan as scientifically reasonable," he said.
+But the decision to dump Fukushima wastewater into the ocean has drawn fire from neighboring Asian countries and local fishermen along Japan's coast.
+China called the decision "extremely irresponsible," and South Korea summoned the Japanese ambassador in Seoul over the matter.
+Japan plans to release wastewater into ocean
+01:59
+"They told us that they wouldn't release the water into the sea without the support of fishermen," Kanji Tachiya, who leads a local cooperative of fisheries in Fukushima, told national broadcaster NHK ahead of the announcement on Tuesday. "We can't back this move to break that promise and release the water into the sea unilaterally."
+Critics, including Greenpeace nuclear specialist Shaun Burnie, argue that Japan should continue storing the wastewater near the stricken Fukushima plant.
+"Deliberately discharging and contaminating the Pacific Ocean after decades of contamination already from the nuclear industry and nuclear weapons testing is just not acceptable," he said.
+The actual release of water from the Fukushima plant will take decades to complete. Critics have called on Japan's government to at least ensure that independent monitoring is in place to verify the level of radiation in the discharged water is safe for the environment.
+In:
+fukushima daiichi nuclear disaster
+First published on April 13, 2021 / 4:53 AM
+© 2021 CBS Interactive Inc. All Rights Reserved.
+ 
+Report:
+{
+    "responses": [
+        {
+            "text": "Japan announced it will begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. This decision is driven by the accumulation of more than a million tons of contaminated water—enough to fill approximately 500 Olympic-sized swimming pools—resulting from efforts to cool the damaged reactors and from rain and groundwater infiltration after the 2011 earthquake and tsunami.",
+            "citations": ["msmarco_v2.1_doc_34_8611515#0_19233573"]
+        },
+        {
+            "text": "The Japanese government and TEPCO had previously promised local fishermen that contaminated water would not be released without their consent. This assurance was broken, leading to strong opposition from fisheries representatives. Tetsu Nozaki, president of a coalition of fishery cooperatives in Fukushima Prefecture, stated: \"It’s unacceptable for radioactive matter to be deliberately pumped into the ocean.\"",
+            "citations": ["msmarco_v2.1_doc_48_1028452139#4_1849573182", "msmarco_v2.1_doc_40_1120198376#1_2364446253", "msmarco_v2.1_doc_25_386989980#5_757646505"]
+        },
+        {
+            "text": "The plan has sparked protests from local residents, environmental groups, and neighboring countries such as China and South Korea, who have called the move irresponsible. Shaun Burnie, a Greenpeace nuclear specialist, criticized the plan, highlighting concerns about radioactive isotopes and potential genetic damage, and stating that deliberate ocean contamination is unacceptable.",
+            "citations": ["msmarco_v2.1_doc_36_886589907#1_1763847164"]
+        },
+        {
+            "text": "The release of treated water is expected to take decades to complete. Critics have called for independent monitoring to verify that radiation levels in the discharged water are safe for the environment. The IAEA approves Japan’s plan, noting it meets global safety standards and is common practice, and confirms ongoing monitoring of the marine environment with low and stable radioactivity levels, while encouraging continued oversight.",
+            "citations": ["msmarco_v2.1_doc_43_496550983#10_1091530029", "msmarco_v2.1_doc_40_1120198376#3_2364451366"]
+        }
+    ]
+}
+IR Context:
+{"question": "Are there any direct quotes from critics, such as Greenpeace or local fisheries representatives, that should be included for completeness?", "doc_context": "The topic document includes quotes from Shaun Burnie (Greenpeace) and Kanji Tachiya (fisheries cooperative).", "answer": {"text": "Yes, there are direct quotes from Shaun Burnie, a Greenpeace senior nuclear specialist, expressing concerns about radioactive isotopes in the water and potential genetic damage, which supports the inclusion of Greenpeace's critical perspective. However, no direct quotes from Kanji Tachiya or other local fisheries representatives were found in the provided segments.", "citations": [{"summary": "Shaun Burnie of Greenpeace criticizes the plan to release water from Fukushima, highlighting radioactive isotopes and potential genetic damage.", "citation": "msmarco_v2.1_doc_36_886589907#1_1763847164"}]}, "finished": true}
+{"question": "What is the expected duration for the complete release of the treated water into the ocean?", "doc_context": "The topic document states that the release will take decades to complete.", "answer": {"text": "The release of the treated water into the ocean is expected to take decades to complete, as stated in the topic document. No additional precise timeline details were found in the search results.", "citations": []}, "finished": true}
+{"question": "What independent monitoring measures are being proposed or requested to ensure the safety of the discharged water?", "doc_context": "Critics in the topic document call for independent monitoring to verify radiation levels.", "answer": {"text": "The topic document mentions critics calling for independent monitoring to verify radiation levels in the discharged water. The IAEA report confirms that radiation levels in sampled water are substantially below operational targets set by TEPCO, based on monitoring data. TEPCO analyzes the quality of groundwater before discharge and publicly announces results. The Japanese government provides reports to the IAEA, which assesses and confirms the technical feasibility and safety of the discharge. However, no specific independent monitoring measures or proposals requested by critics were found in the search results.", "citations": [{"summary": "IAEA report confirms radiation levels in discharged water are substantially below operational targets based on monitoring.", "citation": "msmarco_v2.1_doc_43_496550983#0_1091491618"}]}, "finished": true}
+{"question": "What is the total volume of contaminated water currently stored at the Fukushima plant, and how is this volume contextualized?", "doc_context": "The topic document mentions 'more than a million tons' and compares it to '500 Olympic-sized swimming pools.'", "answer": {"text": "The total volume of contaminated water currently stored at the Fukushima plant is more than a million tons. This volume is contextualized by comparing it to approximately 500 Olympic-sized swimming pools, highlighting the massive scale of the stored water.", "citations": [{"summary": "The water volume is described as more than a million tons and compared to 500 Olympic-sized swimming pools.", "citation": "msmarco_v2.1_doc_34_8611515#0_19233573"}]}, "finished": true}
+{"question": "What are the specific promises or assurances previously made to local fishermen regarding the water release?", "doc_context": "The topic document references a statement by Kanji Tachiya about a promise not to release water without fishermen's support.", "answer": {"text": "The government and TEPCO had promised local fishermen that contaminated water would not be released without their consent. However, this promise was broken, as the government decided to proceed with releasing treated water despite strong opposition from fishermen and fishing cooperatives. Environmental groups and fishermen's representatives have criticized the decision-making process as undemocratic and lacking transparency.", "citations": [{"summary": "Environmental groups and fishermen state the promise not to release water without fishermen's support was broken.", "citation": "msmarco_v2.1_doc_48_1028452139#4_1849573182"}, {"summary": "Prime Minister Suga met with fishing federation president who maintained opposition despite government requests.", "citation": "msmarco_v2.1_doc_40_1120198376#1_2364446253"}]}, "finished": true}
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Used queries focused on volume of contaminated water and promises to fishermen. Found relevant segments confirming volume over a million tons and broken promises to fishermen.\", \"seen_ids\": [\"msmarco_v2.1_doc_34_8611515#0_19233573\", \"msmarco_v2.1_doc_48_1028452139#4_1849573182\", \"msmarco_v2.1_doc_40_1120198376#1_2364446253\"]}]}"}
+===================================
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Initial round found IAEA report confirming radiation levels below targets but no detailed independent monitoring proposals or exact release duration beyond 'decades'.\", \"seen_ids\": [\"msmarco_v2.1_doc_43_496550983#0_1091491618\", \"msmarco_v2.1_doc_41_1755894628#10_2743963429\", \"msmarco_v2.1_doc_35_751281316#3_1821072442\", \"msmarco_v2.1_doc_18_1537746005#9_1733184852\", \"msmarco_v2.1_doc_00_554534304#11_1012885606\", \"msmarco_v2.1_doc_39_858631963#6_1750259909\"]}, {\"summary\": \"Additional documents confirm TEPCO's pre-discharge monitoring and public announcements, IAEA's receipt of reports and assessments, and critics' calls for independent monitoring without concrete proposals.\", \"seen_ids\": [\"msmarco_v2.1_doc_52_43359733#3_56562483\", \"msmarco_v2.1_doc_48_1028452139#3_1849571204\", \"msmarco_v2.1_doc_38_1299410557#12_2642740866\", \"msmarco_v2.1_doc_36_886589907#3_1763851545\", \"msmarco_v2.1_doc_40_230163566#11_504499708\"]}]}"}
+===================================
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Searched for direct quotes from Greenpeace and fisheries representatives. Found direct quotes from Shaun Burnie (Greenpeace) but no direct quotes from Kanji Tachiya or fisheries representatives in the selected segments.\", \"seen_ids\": [\"msmarco_v2.1_doc_36_886589907#1_1763847164\", \"msmarco_v2.1_doc_06_271315130#8_486564900\", \"msmarco_v2.1_doc_39_541097801#4_1147444098\", \"msmarco_v2.1_doc_18_465403740#5_524630013\", \"msmarco_v2.1_doc_16_1613701867#14_1817789426\", \"msmarco_v2.1_doc_06_277912952#0_492382807\"]}]}"}{"question": "Does the IAEA statement cited refer specifically to the planned discharge process, and what are the exact findings or assurances?", "doc_context": "The report references IAEA confirmation of safety, but the citation should be checked for specificity and directness.", "answer": {"text": "The IAEA statements confirm ongoing monitoring of seawater, sediment, and marine biota, noting low and stable levels of radioactivity. The IAEA approves the Japanese government's plan for water discharge, stating it meets global standards and is a common practice for nuclear plants. While the statements do not explicitly detail the planned discharge process, they provide assurances of safety and encourage continued monitoring.", "citations": [{"summary": "IAEA notes no significant changes in marine environment monitoring and encourages continued monitoring.", "citation": "msmarco_v2.1_doc_43_496550983#10_1091530029"}, {"summary": "IAEA approves the Japanese government's plan, noting it meets global safety standards and is common practice.", "citation": "msmarco_v2.1_doc_40_1120198376#3_2364451366"}]}, "finished": true}
+{"question": "Is there a direct quote from Kanji Tachiya or another fisheries representative regarding the broken promise or their opposition?", "doc_context": "The topic document includes a quote from Kanji Tachiya about the promise not to release water without fishermen's support, but the report does not include a direct quote.", "answer": {"text": "There is no direct quote from Kanji Tachiya in the provided segments. However, there is a direct quote from Tetsu Nozaki, president of a coalition of fishery cooperatives in Fukushima Prefecture, expressing vehement opposition: \"It’s unacceptable for radioactive matter to be deliberately pumped into the ocean.\" This indicates strong opposition from fisheries representatives, though no direct quote from Kanji Tachiya is found.", "citations": [{"summary": "Tetsu Nozaki, fisheries representative, directly opposes the release of contaminated water.", "citation": "msmarco_v2.1_doc_25_386989980#5_757646505"}, {"summary": "Prime Minister Suga met with Hiroshi Kishi, head of the national federation of fisheries cooperatives, who continues opposition to the water release plan.", "citation": "msmarco_v2.1_doc_40_1120198376#1_2364446253"}]}, "finished": true}
+{"summary": null, "status": "FINISHED", "answer": "{\"questions\": [], \"rounds\": [{\"summary\": \"Initial round found a direct fisheries representative quote opposing water release but no direct quote from Kanji Tachiya. IAEA statements confirm safety and monitoring but lack explicit detail on the planned discharge process.\", \"seen_ids\": [\"msmarco_v2.1_doc_25_386989980#5_757646505\", \"msmarco_v2.1_doc_43_496550983#10_1091530029\", \"msmarco_v2.1_doc_40_1120198376#3_2364451366\"]}, {\"summary\": \"New round confirmed no direct quote from Kanji Tachiya but found direct quote from Tetsu Nozaki and further evidence of fisheries opposition and government decisions.\", \"seen_ids\": [\"msmarco_v2.1_doc_25_386989980#5_757646505\", \"msmarco_v2.1_doc_40_1120198376#1_2364446253\"]}]}"}
+Generator Comments:
+0. Evaluation note: This is the first round and there is no IR context or segment_ids available, so all citations are left empty. The report covers the announcement, rationale, public and international reactions, and safety assurances as described in the topic. If segment_ids become available in future rounds, citations will be updated accordingly.
+1. Evaluation note: The IR context provided segment_ids for the volume of water, broken promises to fishermen, IAEA monitoring, and a direct quote from Greenpeace. No direct quotes from Kanji Tachiya or other fisheries representatives were found, so only the Greenpeace quote is included. The projected timeline is cited as “decades,” with no more precise duration available. Critics’ calls for independent monitoring are mentioned, but no detailed proposals were found. All claims are now supported by citations where available, as requested in previous evaluator notes.
+2. Evaluation note: The fisheries representative quote is from Tetsu Nozaki, not Kanji Tachiya, as no direct quote from Tachiya was found in the IR context. The IAEA’s statements confirm safety and monitoring but do not explicitly detail the planned discharge process. No further specifics on independent monitoring proposals were found. All claims are now attributed to the most direct and relevant citations available.
+
+ Your Comments:
+0. Evaluation note: In future rounds, once IR context or segment_ids are available, please add precise citations to support each factual claim. Consider including more specific details, such as the volume of water stored (over a million tons), the analogy to Olympic-sized swimming pools, and direct quotes from critics or officials to strengthen completeness and prioritization. Also, clarify the projected timeline for the water release process (decades) and the call for independent monitoring, as these are notable points in the topic document.
+1. Evaluation note: Please try to include a direct quote from Kanji Tachiya or another fisheries representative if available, as this would strengthen completeness and balance. For the IAEA's assessment, clarify whether the cited monitoring data refers specifically to the planned discharge or to general water samples, and ensure the citation directly supports the claim. If no further details on independent monitoring proposals exist, briefly note this in the report for transparency.
+<cot> My evaluation will focus on whether the report accurately and thoroughly covers the main points from the topic document: the announcement and rationale for the water release, the scale of stored water, the broken promise to fishermen, the range of protests and criticisms (including direct quotes), the IAEA's position, and the projected timeline. I will check that all claims are supported by the most direct and relevant citations, especially for contested or controversial points. I will also verify that the report distinguishes between general monitoring and monitoring specific to the planned discharge, and that it is transparent about any gaps (e.g., lack of direct quotes from certain individuals or absence of detailed independent monitoring proposals). For each rubric field, I will justify my score based on the presence or absence of these elements, the precision of citations, and the clarity and prioritization of information. The report is generally strong, but citation quality and completeness are slightly limited by the lack of direct quotes from Kanji Tachiya and the absence of more detailed independent monitoring proposals. </cot>
+<note> Please clarify in the report that the direct fisheries representative quote is from Tetsu Nozaki, not Kanji Tachiya, and explicitly note that no direct quote from Tachiya was found in the available evidence. For the IAEA’s statements, specify that while they confirm safety and ongoing monitoring, they do not provide explicit detail on the planned discharge process itself. If no further details on independent monitoring proposals exist, briefly state this for transparency. These clarifications will improve citation precision and completeness. </note>
+<ir> 
+{
+  "questions": [
+    {
+      "question": "Can the report clarify the distinction between general IAEA monitoring and monitoring specific to the planned discharge process?",
+      "context": "The IAEA statements cited confirm safety and ongoing monitoring, but do not explicitly detail the planned discharge process."
+    },
+    {
+      "question": "Is there any additional context or direct quote from Kanji Tachiya regarding the broken promise to fishermen?",
+      "context": "The topic document includes a quote from Kanji Tachiya, but the report only provides a direct quote from Tetsu Nozaki."
+    }
+  ]
+}
+</ir>
+<eval> 
+{
+"coverage": 5,
+"accuracy": 5,
+"citation_quality": 4,
+"style": 4,
+"prioritization": 4,
+"completeness": 4,
+"comments": "The report covers all major aspects of the topic, including the announcement, rationale, opposition, and international response, with accurate and well-supported claims. Citations are generally strong and relevant, but there is a minor gap in directly attributing the fisheries quote to Tetsu Nozaki rather than Kanji Tachiya, and the IAEA citations could be more explicit about the scope of monitoring. The style is clear and concise, and the report prioritizes key facts, though a brief note on the absence of more detailed independent monitoring proposals would further improve completeness and transparency."
 }
 </eval>
