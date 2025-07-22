@@ -111,12 +111,16 @@ Example:
 - Fill every required field, even if you must explain why a score is low or a field is empty.
 - Do not hallucinate information. Only use the provided report, article, and IR context.
 - If you cannot fill a field, explain why in the comments/message.
+- IR questions must be an array of objects with 'doc_context' and 'question' fields.
+- All fields must be present, even if empty (explain why if so).
 
 **Final checklist before output:**
 - [ ] Output is a single valid JSON object, no markdown or extra text.
 - [ ] All rubric fields are present and scored 1-5.
 - [ ] Comments and message are specific, actionable, and grounded in the input.
 - [ ] IR questions are clear, non-redundant, and address real gaps.
+- [ ] No hallucinated or unsupported information.
+- [ ] No extra text, explanations, or markdown.
 
 Begin your evaluation now.
 """
