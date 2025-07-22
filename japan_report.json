@@ -1,0 +1,20 @@
+{
+    "responses": [
+        {
+            "text": "Japan announced it will begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. This decision is driven by the accumulation of more than a million tons of contaminated water—enough to fill approximately 500 Olympic-sized swimming pools—resulting from efforts to cool the damaged reactors and from rain and groundwater infiltration after the 2011 earthquake and tsunami.",
+            "citations": ["msmarco_v2.1_doc_34_8611515#0_19233573"]
+        },
+        {
+            "text": "The Japanese government and TEPCO had previously promised local fishermen that contaminated water would not be released without their consent. This assurance was broken, leading to strong opposition from fisheries representatives. Tetsu Nozaki, president of a coalition of fishery cooperatives in Fukushima Prefecture, stated: \"It’s unacceptable for radioactive matter to be deliberately pumped into the ocean.\"",
+            "citations": ["msmarco_v2.1_doc_48_1028452139#4_1849573182", "msmarco_v2.1_doc_40_1120198376#1_2364446253", "msmarco_v2.1_doc_25_386989980#5_757646505"]
+        },
+        {
+            "text": "The plan has sparked protests from local residents, environmental groups, and neighboring countries such as China and South Korea, who have called the move irresponsible. Shaun Burnie, a Greenpeace nuclear specialist, criticized the plan, highlighting concerns about radioactive isotopes and potential genetic damage, and stating that deliberate ocean contamination is unacceptable.",
+            "citations": ["msmarco_v2.1_doc_36_886589907#1_1763847164"]
+        },
+        {
+            "text": "The release of treated water is expected to take decades to complete. Critics have called for independent monitoring to verify that radiation levels in the discharged water are safe for the environment. The IAEA approves Japan’s plan, noting it meets global safety standards and is common practice, and confirms ongoing monitoring of the marine environment with low and stable radioactivity levels, while encouraging continued oversight.",
+            "citations": ["msmarco_v2.1_doc_43_496550983#10_1091530029", "msmarco_v2.1_doc_40_1120198376#3_2364451366"]
+        }
+    ]
+}
