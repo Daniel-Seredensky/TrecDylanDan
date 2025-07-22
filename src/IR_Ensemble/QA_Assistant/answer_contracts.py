@@ -2,7 +2,7 @@ SEARCH_CONTRACT = \
 """
 Given the following plan and set of questions, return a json of bm25 optimized keyword 
 queries (MARCO search) and a master query (used for semantic rerank). You may have up 
-to *2* [queries,master_query] pairs in your "searches" array. As well as up to *4* queries per search, not including the master query.
+to *4* [queries,master_query] pairs in your "searches" array. As well as up to *4* queries per search, not including the master query.
 
 > You *MUST* answer with the following format:
 ``` 
@@ -10,16 +10,16 @@ to *2* [queries,master_query] pairs in your "searches" array. As well as up to *
 <answer>
 {
 "searches":[
-    {
-        "queries": [
-            <query1>,
-            <query2>,
-            ...
-        ],
-        "master_query": "master_query"
-    },
-    ...
-] 
+        {
+            "queries": [
+                <query1>,
+                <query2>,
+                ...
+            ],
+            "master_query": "master_query"
+        },
+        ...
+    ] 
 }
 <answer>
 ```
@@ -36,10 +36,10 @@ select up to *6* segment_ids for further exploration
 <answer>
 {
 "selections":[
-    <segment_id1>,
-    <segment_id2>,
-    ...
-]
+        <segment_id1>,
+        <segment_id2>,
+        ...
+    ]
 }
 </answer>
 ```
@@ -62,8 +62,17 @@ Immediately upon marking a question as true it will be removed from the next rou
         {
             "question": <verbatim user question>,
             "doc_context": <verbatim doc context>,
-            "answer": <in progress answer/ finished answer>,
-            "citations": [<**ONLY** Marco segment_ids>]
+            "answer": 
+                {
+                    "text": <text>,
+                    "citations": [
+                        {
+                            "summary": <summarize the info found from the segment>,
+                            "citation": <segment_id>,
+                        },
+                        ...
+                    ]
+                }
             "finished": <true if fully confident and finished working, false otherwise>
         },
         ...
@@ -71,17 +80,17 @@ Immediately upon marking a question as true it will be removed from the next rou
 "rounds": [
         {
             "summary": <Brief summary of the round and different kw queries you tried that did not yield results to avoid in the future>,
-            "seen_ids": [ # A list of seen search results to avoid
+            "seen_ids": [ # A list of seen search results that way they can be avoided in the future
                 <segment_id1>,
                 <segment_id2>,
                 ...
             ]
         },
         {
-            "summary": <Also in your summaries include how you might improve the next round, what you learned, and what you would do differently>,
-            "seen_ids": [ 
-                <segment_id1>,
-                <segment_id2>,
+            "summary": <Next rounds summary>,
+            "seen_ids": [ # *ONLY* the seen ids from this round no repeat ids from previous rounds
+                <segment_id3>,
+                <segment_id4>,
                 ...
             ]
         },

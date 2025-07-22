@@ -23,8 +23,8 @@ from openai import AsyncAzureOpenAI
 from openai.types.responses import Response, ResponseUsage
 import tiktoken
 
-from src.QA_Assistant.token_bucket import AsyncTokenBucket
-from src.QA_Assistant.answer_contracts import GLOBAL_FORMAT
+from src.IR_Ensemble.QA_Assistant.token_bucket import AsyncTokenBucket
+from src.IR_Ensemble.QA_Assistant.answer_contracts import GLOBAL_FORMAT
 
 load_dotenv()
 
@@ -39,12 +39,12 @@ class LoopStage(Enum):
     [{"max_output_tokens":3_500,"model": "gpt-4.1","previous_response_id": None}, 50_000,1]
     """
     # Previous response id should be None for PLAN call always
-    PLAN_CALL = [{"max_output_tokens":3_500,
+    SEARCH_CALL = [{"max_output_tokens":2_000,
                   "model": "gpt-4.1",
                   "previous_response_id": None,
                   "temperature":0.4,
                   "top_p":0.95}, 50_000, 1]
-    TOOL_CALL = [{"max_output_tokens":2_000,
+    SELECT_CALL = [{"max_output_tokens":2_000,
                   "model": "gpt-4.1-mini",
                   "previous_response_id": None,
                   "temperature":0.2,
@@ -141,11 +141,12 @@ async def gated_response(
 
     result: Response | None = None
     ids: dict[str, str] = {}
-    is_plan_call = stage == LoopStage.PLAN_CALL
+    is_search_call = stage == LoopStage.SEARCH_CALL
 
     try:
-        if is_plan_call:
-            # Planner uses its own global bucket
+        if is_search_call:
+            # Planner uses its own global bucket 
+            # Note: Planner is deprecated, the search query generation now uses the plan token bucket
             async with plan_tok_limiter.acquire(reserve) as plan_id, \
                        plan_req_limiter.acquire(1):
                 ids["plan"] = plan_id
@@ -177,7 +178,7 @@ async def gated_response(
         assistant_id=assistant_id,
         used_tokens=result.usage.total_tokens,
         reserved=reserve,
-        is_plan_call=is_plan_call,
+        is_plan_call=is_search_call,
         ids=ids,
     )
     return result

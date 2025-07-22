@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from src.QA_Assistant.rate_limits import (
+from src.IR_Ensemble.QA_Assistant.rate_limits import (
     plan_req_limiter,
     plan_tok_limiter,
     global_req_limiter,
@@ -15,7 +15,7 @@ from src.QA_Assistant.rate_limits import (
     assistant_tok_limiters,
     cohere_bucket
 )
-from src.QA_Assistant.token_bucket import AsyncTokenBucket
+from src.IR_Ensemble.QA_Assistant.token_bucket import AsyncTokenBucket
 
 class BucketMonitor:
     # ─────────────────────────────── initialisation ──────────────────────────

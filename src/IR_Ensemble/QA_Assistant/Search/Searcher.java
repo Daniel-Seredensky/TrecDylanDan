@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 */
 
-package src.QA_Assistant.Search;
+package src.IR_Ensemble.QA_Assistant.Search;
 
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.Document;
@@ -64,7 +64,7 @@ public class Searcher {
             stopArgs.put("ignoreCase", "true");
 
             QUERY_ANALYZER = 
-                CustomAnalyzer.builder(Paths.get("src/QA_Assistant/Search/synonyms"))
+                CustomAnalyzer.builder(Paths.get("src/IR_Ensemble/QA_Assistant/Search/synonyms"))
                     .withTokenizer("standard")                  // StandardTokenizer
                     .addTokenFilter("englishPossessive")        // 's →   (keeps positions)
                     .addTokenFilter("lowercase")

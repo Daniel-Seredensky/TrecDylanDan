@@ -1,0 +1,134 @@
+
+=========
+Prompt:
+
+You are the **Report‑Generator Agent** in a closed‑loop summarisation pipeline.  
+Your sole job is to produce a tightly‑structured answer that the downstream Report‑Evaluator
+(and nothing else) can parse.  
+Never emit any text outside the required XML‑style tags.
+
+────────────────────────────────  REQUIREMENTS  ────────────────────────────────
+1. **Overall layout** (in this exact order, no blank lines between tags):
+   <cot> … </cot>      – Chain‑of‑thought plan (≤ 250 words, prose).
+   <note> … </note>    – Short message to the evaluator (free length, prose;
+                         give style/coverage reflections or IR hints). Note any questions 
+                         that could not be found by IR-Agents so that the Evaluator will 
+                         not penalize you for them and to avoid repeat questions. Do not repeat previous notes.
+   <report>{ … }</report> – A JSON object with ONE key, **"responses"**,
+                         whose value is an array of text blocks.
+
+2. **Inside <report>**
+   • Each array element **MUST** be an object with:
+     – "text": string (body of one logical section).  
+     – "citations": array[int] of segment_ids referenced in that text.  
+   • **At most 4 citations per "text".**  
+   • Maintain the order of appearance of citations within the paragraph.  
+   • Aim for concise, information‑dense prose (≈ 75–150 words each).  
+   • Use neutral, factual tone; no first‑person narration.
+
+3. **Content guidance**
+   • Cover the topic exhaustively but prioritise the most critical points first.  
+   • Attribute every non‑obvious claim with a citation segment_id.  
+   • If topic or IR context is light, gracefully acknowledge gaps and proceed.  
+   • Do **NOT** include markdown, code fences, or extra keys in the JSON.
+
+4. **Validation guards**  
+   • Ensure JSON is syntactically valid (double quotes, commas, braces).  
+   • Never exceed 250 words within <cot>.  
+   • Never use more than 4 citations in a single "citations" array.  
+   • No other tags, keys, or text are permitted.
+
+────────────────────────────────  INPUT HINTS  ─────────────────────────────────
+You will receive:
+• Topic (string)  
+• Previous report (string or “First round …”)  
+• Your prior notes and evaluator notes (serialised list)  
+• IR context (string)
+
+Use them to plan in <cot>, write the evaluator <note>, and craft the new <report>.  
+If this is the first round, acknowledge missing pieces succinctly.
+
+Remember: **all output must be valid UTF‑8 plain text following the tag schema above.**
+
+### Example output:
+```
+<cot> Formalize your plan to create the report with a **ABSOLUTE MAXIMUM** of 250 words </cot>
+<note> Your note to the evaluator </note>
+<report> 
+{
+    responses: [
+        {
+        "text": <text block 1 of your response>,
+        "citations": [<segment_id1>, <segment_id2>, ...]   # There can be at **MOST** 4 citations per block of text
+        },
+        {
+        "text": <text block 2 of your response>,
+        "citations": [<segment_id1>, <segment_id5>, ...]   # If no IR context exists for citations leave an empty array
+        },
+        ...
+    ]
+}
+</report>
+```
+
+Topic:
+ Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific, sparking protests - CBS News
+World
+Protests as Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific
+By Lucy Craft
+April 13, 2021 / 7:07 AM / CBS News
+Tokyo — Japan said Tuesday that it would start discharging treated radioactive water from the crippled Fukushima nuclear power plant into the Pacific Ocean within two years. Officials in Tokyo said the water would be filtered and diluted to safe levels first, but many residents remain firmly opposed to the plan.
+Protesters gathered outside Prime Minister Yoshihide Suga's residence in downtown Tokyo to denounce the government's decision.
+More than a million tons of contaminated water is currently being stored at the Fukushima power plant in a massive tank farm big enough to fill 500 Olympic-sized swimming pools. The wastewater comes from water pumped in to cool the plant's damaged reactors and also rain and groundwater that seeps into the facility, which was seriously damaged by the 2011 earthquake and subsequent tsunami that ravaged Japan's northeast coast.
+The unit three reactor building and storage tanks for contaminated water at the Tokyo Electric Power Company's (TEPCO) Fukushima Daiichi nuclear power plant in Okuma, Fukushima prefecture, Japan,   February 3, 2020.KAZUHIRO NOGI/AFP/Getty
+The government says it has simply run out of room to store all the water. The plan to dump the water into the ocean first came to light in the autumn of last year, when Japanese news outlets cited anonymous officials as saying the decision had been taken.
+"We can't postpone a decision on the plan to deal with the... processed water, to prevent delays in the decommission work of the Fukushima Daiichi nuclear power plant," Chief Cabinet Secretary Katsunobu Kato said in October 2020, without commenting directly on the plan or its timing.
+On Tuesday, Suga said that after years of study, his scientific advisors had concluded that ocean discharge was the most feasible way to cope with the surplus of contaminated water.
+"The International Atomic Energy Agency also supports this plan as scientifically reasonable," he said.
+But the decision to dump Fukushima wastewater into the ocean has drawn fire from neighboring Asian countries and local fishermen along Japan's coast.
+China called the decision "extremely irresponsible," and South Korea summoned the Japanese ambassador in Seoul over the matter.
+Japan plans to release wastewater into ocean
+01:59
+"They told us that they wouldn't release the water into the sea without the support of fishermen," Kanji Tachiya, who leads a local cooperative of fisheries in Fukushima, told national broadcaster NHK ahead of the announcement on Tuesday. "We can't back this move to break that promise and release the water into the sea unilaterally."
+Critics, including Greenpeace nuclear specialist Shaun Burnie, argue that Japan should continue storing the wastewater near the stricken Fukushima plant.
+"Deliberately discharging and contaminating the Pacific Ocean after decades of contamination already from the nuclear industry and nuclear weapons testing is just not acceptable," he said.
+The actual release of water from the Fukushima plant will take decades to complete. Critics have called on Japan's government to at least ensure that independent monitoring is in place to verify the level of radiation in the discharged water is safe for the environment.
+In:
+fukushima daiichi nuclear disaster
+First published on April 13, 2021 / 4:53 AM
+© 2021 CBS Interactive Inc. All Rights Reserved.
+Previous report: 
+First round no report yet
+Your notes:
+
+Evaluation notes: 
+0. Evaluation note: First round no note yet or trouble parsing eval note
+
+IR context: 
+First round no IR context yet
+
+Response:
+<cot>To create a comprehensive report on Japan's decision to discharge treated radioactive water from the Fukushima nuclear plant into the Pacific Ocean, I will first summarize the government's rationale and the technical aspects of the plan, including the treatment and dilution process. Next, I will address the scale of the issue, such as the volume of water stored and the reasons for storage limitations. I will then cover the domestic and international reactions, highlighting protests, concerns from local residents and fishermen, and criticism from neighboring countries. Finally, I will mention the timeline for the release and calls for independent monitoring. As there is no IR context in this first round, all information will be drawn from the provided topic summary, and citations will be left empty. The report will be structured into logical sections, each focusing on a key aspect of the situation, ensuring clarity and completeness within the constraints of the available information.</cot>
+<note>This is the first round and there is no IR context, so all information is based solely on the topic summary. Citations arrays are left empty as required. No questions were left unanswered given the available input. Future rounds may benefit from additional IR context for deeper coverage or verification.</note>
+<report>
+{
+    "responses": [
+        {
+            "text": "Japan has announced plans to begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. The government asserts that the water will be filtered and diluted to safe levels before release, following years of study and recommendations from scientific advisors. The International Atomic Energy Agency has expressed support for the plan, deeming it scientifically reasonable. The decision is driven by the lack of storage space, as over a million tons of contaminated water are currently held at the site.",
+            "citations": []
+        },
+        {
+            "text": "The contaminated water at Fukushima originates from efforts to cool damaged reactors, as well as rain and groundwater infiltration. Storage tanks at the facility now occupy enough space to fill 500 Olympic-sized swimming pools. Japanese officials argue that postponing the discharge would hinder the ongoing decommissioning process of the plant, which was severely damaged by the 2011 earthquake and tsunami.",
+            "citations": []
+        },
+        {
+            "text": "The announcement has sparked significant protests in Japan, with residents and local fishermen expressing strong opposition. Critics argue that the government is breaking previous promises not to release the water without fishermen's support. Environmental groups, such as Greenpeace, contend that continued storage is preferable to ocean discharge, citing concerns over further contamination of the Pacific.",
+            "citations": []
+        },
+        {
+            "text": "Japan's plan has also drawn criticism from neighboring countries, including China and South Korea, who have labeled the decision irresponsible and summoned Japanese diplomats for explanations. The release process is expected to take decades, and critics have called for independent monitoring to ensure environmental safety throughout the discharge period.",
+            "citations": []
+        }
+    ]
+}
+</report>

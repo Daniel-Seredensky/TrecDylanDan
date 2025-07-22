@@ -10,7 +10,7 @@ class ReportEvaluator:
     def __init__(self, model: str = "gpt-4.1"):
         self.model = model
         self.client = openai.OpenAI()
-
+    
     def evaluate(
         self,
         report: List[Dict[str, Any]],
@@ -29,7 +29,7 @@ class ReportEvaluator:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=1024
+            max_tokens=1024,
         )
         # Try to extract JSON from the response
         result_text = response.choices[0].message.content if response.choices and response.choices[0].message and response.choices[0].message.content else ""

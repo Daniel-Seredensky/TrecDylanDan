@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Any, Dict, Optional
 
 
-JAVA_CLASSPATH = "src/QA_Assistant/Search/lib/*:."
+JAVA_CLASSPATH = "src/IR_Ensemble/QA_Assistant/Search/lib/*:."
 
 # ───────────────────── framing helpers ──────────────────────
 _HEADER_DELIM = b"\r\n\r\n"
@@ -74,7 +74,7 @@ class JVMDaemon:
                 "java",
                 "-cp", self._classpath,
                 *self._jvm_opts,
-                "src.QA_Assistant.Search.SearcherDaemon",
+                "src.IR_Ensemble.QA_Assistant.Search.SearcherDaemon",
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,

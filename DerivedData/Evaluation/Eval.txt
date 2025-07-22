@@ -1,0 +1,189 @@
+
+You are the **Report‑Evaluator Agent** in a closed‑loop fact‑checking pipeline.  
+Your output **must** follow the exact tag‑based schema below so that the
+orchestration code can parse it.  
+❗ Never emit text outside the allowed tags.
+
+───────────────────────────────  TASKS  ───────────────────────────────
+1. <cot> … </cot>  
+   • Write your private reasoning plan here (≤ 200 words).  
+   • Summarise how you will grade, what to double‑check, and which gaps to probe.
+> Include a brief explanation of why you gave the grade you did for each field of the rubric 
+
+2. <note> … </note>  
+   • 2‑4 sentences addressed to the Report‑Generator.  
+   • Be specific and constructive: how to fix shortcomings, tighten citations, or
+     expand coverage.  
+   • No generic praise; every sentence should have an actionable point.
+
+3. <ir> { … } </ir>  
+   • JSON with a single key **"questions"** whose value is an array (≤ 10).  
+   • Each item:  
+     ```json
+     {
+       "question": "<information‑need>",
+       "context": "<snippet or segment_id(s) that show why this info is needed>"
+     }
+     ```  
+   • Target genuine evidence gaps; avoid redundancy or trivia.
+
+4. <eval> { … } </eval>  
+   • JSON rubric with **exactly** these keys (scores 1‑5):  
+     - "coverage"  
+     - "accuracy"  
+     - "citation_quality"  
+     - "style"  
+     - "prioritization"  
+     - "completeness"  
+   • Optionally include **"comments"** (string, 3‑5 sentences) for strengths /
+     weaknesses.  
+   • Use integers only; justify scores in *comments*, not inline.
+
+───────────────────────  STRICT OUTPUT RULES  ────────────────────────
+• Tags **must** appear in the order: <cot>, <note>, <ir>, <eval>.  
+• No blank lines *between* tags.  
+• JSON inside <ir> and <eval> must be syntactically valid (double quotes, commas,
+  braces).  
+• Do **NOT** include markdown fences, headings, or extra prose outside tags.  
+• Do **NOT** repeat the report, IR context, or topic text.
+
+──────────────────────────  INPUT YOU RECEIVE  ───────────────────────
+You will be given:  
+• `Topic document` (string)  
+• `Report` (structured JSON)  
+• `IR Context` (string)  
+• Past generator/evaluator comments (serialised list)
+
+Base every judgement solely on this material.  
+If information is missing, reflect that with lower scores, note it in
+<note>, and pose IR questions.
+
+Remember: **Output must be valid UTF‑8 plain text in the specified tag
+structure.** Any deviation will break the pipeline.
+
+> Note: If the generator has already flagged questions they cannot answer. Do not repeat these or penalize the generator for not having that information.
+
+### **Example output:**
+
+```
+<cot> Plan out your evaluation here, note the good, the bad, and relevant planning steps.</cot>
+<note> Your note to the report generator goes here. </note>
+<ir> 
+{
+questions: [
+   {
+    "question": <question1>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   {
+    "question": <question2>,
+    "context": <context from the document that might be needed to answer the question>,
+   },
+   ...
+]
+}
+</ir>
+<eval> 
+{
+"coverage": 4,
+"accuracy": 5,
+"citation_quality": 3,
+"style": 4,
+"prioritization": 4,
+"completeness": 3,
+}
+</eval>
+```
+
+Begin your evaluation now.
+
+Topic document:
+ Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific, sparking protests - CBS News
+World
+Protests as Japan says it will dump radioactive water from crippled Fukushima nuclear plant into the Pacific
+By Lucy Craft
+April 13, 2021 / 7:07 AM / CBS News
+Tokyo — Japan said Tuesday that it would start discharging treated radioactive water from the crippled Fukushima nuclear power plant into the Pacific Ocean within two years. Officials in Tokyo said the water would be filtered and diluted to safe levels first, but many residents remain firmly opposed to the plan.
+Protesters gathered outside Prime Minister Yoshihide Suga's residence in downtown Tokyo to denounce the government's decision.
+More than a million tons of contaminated water is currently being stored at the Fukushima power plant in a massive tank farm big enough to fill 500 Olympic-sized swimming pools. The wastewater comes from water pumped in to cool the plant's damaged reactors and also rain and groundwater that seeps into the facility, which was seriously damaged by the 2011 earthquake and subsequent tsunami that ravaged Japan's northeast coast.
+The unit three reactor building and storage tanks for contaminated water at the Tokyo Electric Power Company's (TEPCO) Fukushima Daiichi nuclear power plant in Okuma, Fukushima prefecture, Japan,   February 3, 2020.KAZUHIRO NOGI/AFP/Getty
+The government says it has simply run out of room to store all the water. The plan to dump the water into the ocean first came to light in the autumn of last year, when Japanese news outlets cited anonymous officials as saying the decision had been taken.
+"We can't postpone a decision on the plan to deal with the... processed water, to prevent delays in the decommission work of the Fukushima Daiichi nuclear power plant," Chief Cabinet Secretary Katsunobu Kato said in October 2020, without commenting directly on the plan or its timing.
+On Tuesday, Suga said that after years of study, his scientific advisors had concluded that ocean discharge was the most feasible way to cope with the surplus of contaminated water.
+"The International Atomic Energy Agency also supports this plan as scientifically reasonable," he said.
+But the decision to dump Fukushima wastewater into the ocean has drawn fire from neighboring Asian countries and local fishermen along Japan's coast.
+China called the decision "extremely irresponsible," and South Korea summoned the Japanese ambassador in Seoul over the matter.
+Japan plans to release wastewater into ocean
+01:59
+"They told us that they wouldn't release the water into the sea without the support of fishermen," Kanji Tachiya, who leads a local cooperative of fisheries in Fukushima, told national broadcaster NHK ahead of the announcement on Tuesday. "We can't back this move to break that promise and release the water into the sea unilaterally."
+Critics, including Greenpeace nuclear specialist Shaun Burnie, argue that Japan should continue storing the wastewater near the stricken Fukushima plant.
+"Deliberately discharging and contaminating the Pacific Ocean after decades of contamination already from the nuclear industry and nuclear weapons testing is just not acceptable," he said.
+The actual release of water from the Fukushima plant will take decades to complete. Critics have called on Japan's government to at least ensure that independent monitoring is in place to verify the level of radiation in the discharged water is safe for the environment.
+In:
+fukushima daiichi nuclear disaster
+First published on April 13, 2021 / 4:53 AM
+© 2021 CBS Interactive Inc. All Rights Reserved.
+ 
+Report:
+{
+    "responses": [
+        {
+            "text": "Japan has announced plans to begin discharging treated radioactive water from the Fukushima Daiichi nuclear power plant into the Pacific Ocean within two years. The government asserts that the water will be filtered and diluted to safe levels before release, following years of study and recommendations from scientific advisors. The International Atomic Energy Agency has expressed support for the plan, deeming it scientifically reasonable. The decision is driven by the lack of storage space, as over a million tons of contaminated water are currently held at the site.",
+            "citations": []
+        },
+        {
+            "text": "The contaminated water at Fukushima originates from efforts to cool damaged reactors, as well as rain and groundwater infiltration. Storage tanks at the facility now occupy enough space to fill 500 Olympic-sized swimming pools. Japanese officials argue that postponing the discharge would hinder the ongoing decommissioning process of the plant, which was severely damaged by the 2011 earthquake and tsunami.",
+            "citations": []
+        },
+        {
+            "text": "The announcement has sparked significant protests in Japan, with residents and local fishermen expressing strong opposition. Critics argue that the government is breaking previous promises not to release the water without fishermen's support. Environmental groups, such as Greenpeace, contend that continued storage is preferable to ocean discharge, citing concerns over further contamination of the Pacific.",
+            "citations": []
+        },
+        {
+            "text": "Japan's plan has also drawn criticism from neighboring countries, including China and South Korea, who have labeled the decision irresponsible and summoned Japanese diplomats for explanations. The release process is expected to take decades, and critics have called for independent monitoring to ensure environmental safety throughout the discharge period.",
+            "citations": []
+        }
+    ]
+}
+IR Context:
+First round no IR context yet
+Generator Comments:
+0. Evaluation note: This is the first round and there is no IR context, so all information is based solely on the topic summary. Citations arrays are left empty as required. No questions were left unanswered given the available input. Future rounds may benefit from additional IR context for deeper coverage or verification.
+
+ Your Comments:
+
+<cot> My evaluation will focus on how well the report summarizes the main points from the topic document, the accuracy of the information presented, and whether the report covers all significant aspects (protests, government rationale, international response, technical details, and criticisms). Since this is the first round and no IR context is available, citation arrays are correctly left empty, but I will note this in citation quality. I will check for any missing details, such as the specific statements from officials, the role of the IAEA, and the timeline for the water release. I will also assess whether the report prioritizes the most newsworthy elements and maintains a clear, neutral style. Each rubric field will be justified: coverage and completeness may be slightly reduced if any nuance or detail is missing; citation quality will be marked down due to the absence of citations, even though this is expected in round one; style and prioritization will be rated based on clarity and focus.</cot>
+<note> In future rounds, please add inline citations to support each factual claim, especially when quoting officials or referencing international reactions. Consider including more direct quotes from the topic document to strengthen accuracy and attribution. Expand slightly on the technical process of water treatment and dilution, and clarify the timeline for both the start and duration of the discharge. Ensure that all stakeholder perspectives, including those of local fishermen and environmental groups, are explicitly attributed.</note>
+<ir> 
+{
+  "questions": [
+    {
+      "question": "What specific methods will be used to filter and dilute the radioactive water before discharge?",
+      "context": "The report mentions the water will be 'filtered and diluted to safe levels' but does not specify the process."
+    },
+    {
+      "question": "What are the exact statements or positions of the International Atomic Energy Agency regarding the plan?",
+      "context": "The report says the IAEA supports the plan as 'scientifically reasonable' but does not provide direct quotes or details."
+    },
+    {
+      "question": "What promises did the Japanese government make to local fishermen regarding the water release, and how are these being addressed?",
+      "context": "The report references broken promises to fishermen but lacks detail on the nature of these promises."
+    },
+    {
+      "question": "What independent monitoring mechanisms are being proposed or implemented to verify the safety of the discharged water?",
+      "context": "The report mentions calls for independent monitoring but does not specify any plans or agencies involved."
+    }
+  ]
+}
+</ir>
+<eval> 
+{
+"coverage": 4,
+"accuracy": 5,
+"citation_quality": 2,
+"style": 4,
+"prioritization": 4,
+"completeness": 3,
+"comments": "The report accurately summarizes the main facts and perspectives from the topic document, including government rationale, protests, and international criticism. However, it omits some technical details about the water treatment process and lacks direct quotes from key stakeholders. Citation quality is low due to the absence of inline citations, though this is expected in the first round. The style is clear and neutral, and the report prioritizes the most important elements, but completeness is reduced by missing specifics on monitoring and stakeholder promises."
+}
+</eval>

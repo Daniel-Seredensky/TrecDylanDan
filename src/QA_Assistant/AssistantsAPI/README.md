@@ -1,1 +1,0 @@
-# Old design of the QA-Agent using OpenAI's (to-be-deprecated) Assistants API

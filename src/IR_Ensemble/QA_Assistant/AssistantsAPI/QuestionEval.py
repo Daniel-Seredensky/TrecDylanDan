@@ -13,7 +13,7 @@ import aiofiles
 from openai import AsyncAzureOpenAI
 
 from src.QA_Assistant.Searcher import search
-from src.QA_Assistant.DocSelect import select_documents
+from QA_Assistant.AssistantsAPI.DocSelect import select_documents
 from src.QA_Assistant.rate_limits import gated_openai_stream, refund_tokens,_get_token_buckets
 
 

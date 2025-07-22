@@ -29,16 +29,15 @@ from openai import AsyncAzureOpenAI
 import aiofiles
 
 # ── internal ────────────────────────────────────────────────────────────────
-from src.QA_Assistant.question_eval import assess_questions
-from src.test import QUESTION_PAIRS
+from src.IR_Ensemble.QA_Assistant.question_eval import assess_questions
 
 
 class ContextProctor:
     """Runs `assess_questions` with **queue‑managed** concurrency."""
 
-    MAX_WORKERS: int = 4          # how many workers run in parallel
+    MAX_WORKERS: int = 4          # how many workers run in parallel 
     STAGGER_SEC: float = 2.0      # delay between first, second, third starts
-    BATCH_SIZE: int = 3           # questions per worker‑batch (3‑5 recommended)
+    BATCH_SIZE: int = 2           # questions per worker‑batch (‑5 recommended)
 
     # ────────────────────────────── init ────────────────────────────────
     def __init__(self, client: AsyncAzureOpenAI, questions: List[Dict[str, str]]):
@@ -111,10 +110,5 @@ class ContextProctor:
         stringified = [json.dumps(q) for q in batch]
         contexts = await assess_questions("\n".join(stringified),self.client)
         return json.dumps(contexts)
+    
 
-
-# ────────────────────────────── quick test ──────────────────────────────
-async def test(client: AsyncAzureOpenAI):
-    questions = QUESTION_PAIRS["questions"]
-    proctor = ContextProctor(client, questions)
-    await proctor.create_context()

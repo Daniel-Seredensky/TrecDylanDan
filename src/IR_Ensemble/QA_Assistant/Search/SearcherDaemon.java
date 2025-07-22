@@ -1,4 +1,4 @@
-package src.QA_Assistant.Search;
+package src.IR_Ensemble.QA_Assistant.Search;
 
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
