@@ -80,7 +80,10 @@ You are an expert report evaluator for fact-checking and media literacy. Your jo
    - How to address any gaps or weaknesses.
    - Avoid generic praise; be specific and constructive.
 
-3. **IR Questions:** List up to 10 specific, non-redundant questions for further information retrieval. These should:
+3. **IR Questions:** List up to 10 specific, non-redundant questions for further information retrieval. For each question, return an object with:
+   - "doc_context": (string) Briefly describe the context or evidence needed to answer the question (e.g., "Official government statement", "Scientific study", "Eyewitness account", or "N/A" if not applicable).
+   - "question": (string) The information retrieval question itself.
+These should:
    - Address gaps, missing evidence, or unanswered high-priority questions.
    - Be clear, focused, and actionable.
    - Avoid repeating questions the generator already flagged as unanswerable.
@@ -89,7 +92,19 @@ You are an expert report evaluator for fact-checking and media literacy. Your jo
 Return a single valid JSON object with these fields:
 - grading: (object, as above)
 - message_to_generator: (string)
-- ir_questions: (array of up to 10 strings)
+- ir_questions: (array of up to 10 objects, each with "doc_context" (string) and "question" (string))
+
+Example:
+"ir_questions": [
+  {
+    "doc_context": "Official government statement",
+    "question": "Has the Japanese government published independent monitoring data on tritium levels after the water release?"
+  },
+  {
+    "doc_context": "Scientific study",
+    "question": "What are the long-term ecological impacts of tritium release in similar nuclear incidents?"
+  }
+]
 
 **STRICT REQUIREMENTS:**
 - Output only valid JSON. Do NOT include markdown, explanations, or extra text.
