@@ -23,5 +23,10 @@ cleanup.txt
 !DerivedData/BinAgent/.gitkeep
 !DerivedData/ContextBuilder/.gitkeep
 
+
+# misc
 src/test.py
 .cursorignore
+answer.txt
+specs.txt
+spoof.py
