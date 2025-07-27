@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class LuceneHolder {
 
-    private static final Path INDEX_PATH = Paths.get("/Volumes/X9 Pro/MarcoIndex");
+    private static final Path INDEX_PATH = Paths.get("MarcoIndex");
 
     private static FSDirectory   DIR;
     private static DirectoryReader READER;

@@ -39,23 +39,23 @@ class LoopStage(Enum):
     [{"max_output_tokens":3_500,"model": "gpt-4.1","previous_response_id": None}, 50_000,1]
     """
     # Previous response id should be None for PLAN call always
-    SEARCH_CALL = [{"max_output_tokens":2_000,
-                  "model": "gpt-4.1",
+    SEARCH_CALL = [{"max_output_tokens":3_000,
+                  "model": "gpt-4o-mini",
                   "previous_response_id": None,
                   "temperature":0.4,
-                  "top_p":0.95}, 50_000, 1]
-    SELECT_CALL = [{"max_output_tokens":2_000,
-                  "model": "gpt-4.1-mini",
+                  "top_p":0.95}, 75_000, 1]
+    SELECT_CALL = [{"max_output_tokens":2_500,
+                  "model": "gpt-4o-mini",
                   "previous_response_id": None,
                   "temperature":0.2,
                   "top_p":0.9}, 100_000,2]
-    UPDATE_CALL = [{"max_output_tokens":5_000,
-                    "model": "gpt-4.1-mini",
+    UPDATE_CALL = [{"max_output_tokens":6_000,
+                    "model": "gpt-4o-mini",
                     "previous_response_id": None,
                     "temperature":0.25,
-                    "top_p":0.9}, 100_000,3]
-    FINAL_CALL = [{"max_output_tokens":1_000,
-                   "model": "gpt-4.1-mini",
+                    "top_p":0.9}, 150_000,3]
+    FINAL_CALL = [{"max_output_tokens":1_500,
+                   "model": "gpt-4o-mini",
                    "previous_response_id": None,
                    "temperature":0.4,
                    "top_p":0.95}, 100_000,4]

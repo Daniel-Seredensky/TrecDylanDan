@@ -46,9 +46,10 @@ class ReportEvaluator:
         prompt = SYSTEM_PROMPT + f"\nTopic document:\n{self.topic}\n \nReport:\n{report}\nIR Context:\n{ir_context or 'First round no IR context yet'}\nGenerator Comments:\n{self.serialize_notes(False)}\n Your Comments:\n{self.serialize_notes(True)}"
         self._log(prompt)
         response: Response = await self.client.responses.create(
-            model="gpt-4.1",
+            model="gpt-4o-mini",
             input = prompt,
-            temperature=0.1,
+            temperature=0.2,
+            max_tokens=3000
         )
         text = response.output_text
         self._log(text)

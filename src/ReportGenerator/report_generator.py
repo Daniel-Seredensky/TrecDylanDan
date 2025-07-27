@@ -62,9 +62,10 @@ class ReportGenerator:
         self.eval_notes.append(note)
         prompt = f"{SYSTEM_PROMPT}\nTopic:\n{self.topic}\nPrevious report: \n{self.cur_report or 'First round no report yet'}\nYour notes:\n{self.serialize_notes(True)}Evaluation notes: \n{self.serialize_notes(False)}\nIR context: \n{ir_context or 'First round no IR context yet'}\n"
         resp: Response = await self.client.responses.create(
-            model="gpt-4.1",
+            model="gpt-4o-mini",
             input = prompt,
-            temperature=0.25
+            temperature=0.25,
+            max_tokens=4000
         )
         text = resp.output_text
         self._log("\n=========\n")

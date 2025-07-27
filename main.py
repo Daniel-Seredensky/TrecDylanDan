@@ -58,15 +58,15 @@ async def main():
     topic = topic1
     oai_client = AsyncOpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
-        timeout = 25,
-        max_retries = 3,
+        timeout = 60,
+        max_retries = 5,
     )
     aoai_client = AsyncAzureOpenAI(
         api_key=os.getenv("AZURE_OPENAI_KEY"),
         base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
         api_version="preview",
-        timeout=60.5,
-        max_retries=3,
+        timeout=120,
+        max_retries=5,
     )
     bm = BucketMonitor()
     try: 
@@ -86,4 +86,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    asyncio.run(main())
+    report = asyncio.run(main())
+    print("\n=== FINAL REPORT ===\n")
+    print(report)

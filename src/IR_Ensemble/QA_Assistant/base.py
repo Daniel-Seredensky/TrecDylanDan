@@ -204,6 +204,9 @@ class BaseAgent:
             select_calls = self._extract_tag(select_calls, "answer")
             select_calls = json.loads(select_calls)
             select_calls = select_calls["selections"][:6]
+            if not select_calls:
+                print("WARNING: Empty select_calls list, using dummy ID")
+                select_calls = ["dummy_id"]
             selected_segments = json.dumps(await self._dispatch_tool(JVMDaemon.select_documents,
                                           **{"segment_ids": select_calls, "is_segment": True}))
         except Exception as e:  # noqa: BLE001 - log & rethrow

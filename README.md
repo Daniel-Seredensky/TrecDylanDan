@@ -1,200 +1,334 @@
-# Trec Ideas
+# TREC-2025-DRAGUN: AI-Powered Document Analysis and Report Generation
 
-## New Idea 
+A sophisticated AI pipeline for analyzing news articles and generating comprehensive reports with fact-checking capabilities. This project implements an iterative report generation system that combines information retrieval, AI-powered analysis, and evaluation to produce high-quality, well-sourced reports.
 
-``` mermaid 
+## 🎯 Project Overview
+
+This system takes news articles as input and generates detailed reports through an iterative process:
+
+1. **Document Analysis**: Classifies and analyzes the input document
+2. **Information Retrieval**: Searches for supporting evidence and context
+3. **Report Generation**: Creates comprehensive reports using AI
+4. **Evaluation & Refinement**: Evaluates report quality and iteratively improves it
+5. **TREC Integration**: Generates TREC-2025-DRAGUN compliant outputs
+
+## 🏗️ Architecture
+
+```mermaid
 flowchart TD
-  %% Main flow
-  A[Article] 
-    -->|query generation based on outline| B[Information Retrieval]
-  B 
-    -->|update outline| C{Evaluate Outline}
-  C 
-    -->|bad| A
-  C 
-    -->|good| D[Debate]
-  D --> E[Report Generation]
-
-  %% Sub-process for Information Retrieval
-  subgraph "Information Retrieval"
-    direction TB
-    IR1[Search] 
-      --> IR2[Grab top X docs]
-    IR2 --> IR3[Rank top Y title/header pairs]
-    IR3 --> IR4[Read snippets from top Y docs]
-    IR4 --> IR5[Update outline]
-  end
-
-  %% Hook subgraph back into main flow
-  B --> IR1
-  IR5 --> C
+    A[Input Article] --> B[Document Classification]
+    B --> C{Claim Type}
+    C -->|Bins 0-2| D[Direct Verification]
+    C -->|Bins 3-4| E[Debate & Analysis]
+    C -->|Bin 5| F[Subjective Analysis]
+    
+    E --> G[Information Retrieval]
+    G --> H[Report Generation]
+    H --> I[Report Evaluation]
+    I --> J{Quality Check}
+    J -->|Fail| G
+    J -->|Pass| K[Final Report]
+    
+    K --> L[TREC Format Conversion]
+    L --> M[Output Files]
 ```
 
-## Main Idea
+## 📁 Project Structure
 
-### 1. Classify the document
-
-Using article title and brief summary of the article, an LLM will classify the document based on the following bins:
-
-| Bin   | Name                      | What it signals                                                  | Example                                                    |
-| ----- | ------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------- |
-| **0** | **Verifiable Fact**       | Objective statements you can check against authoritative sources | “Water boils at 100 °C at sea level.”                      |
-| **1** | **Statistical Claim**     | Quantitative or data-driven assertions requiring evidence        | “In Q1 2025, global unemployment fell to 5.2 %.”           |
-| **2** | **Causal Claim**          | Cause-and-effect relationships—often backed by studies           | “Regular exercise reduces the risk of heart disease.”      |
-| **3** | **Interpretive Claim**    | Analyses or contextual conclusions drawn from facts/data         | “Rising broadband access is driving remote-work adoption.” |
-| **4** | **Value Judgment**        | Normative “ought to” statements reflecting moral/social values   | “Governments should ban single-use plastics.”              |
-| **5** | **Subjective Preference** | Purely personal tastes or opinions with no objective grounding   | “Blue is the best color.”                                  |
-
-### 2. Bin Specific Handling
-
-#### Bins 0-2 
-
-These require minimal effort, using a search API or an LLMs internal context should easily be able to verify the claim of the document and provide a concise report.
-
-#### Bins 3-4
-
-* Identify the core claim
-Set up AI agents in debate format (see <code>Debate Format</code> below). At the end of the debate the moderator will generate a context summary based on the arguments made by the agents. Throughout the debate the moderator will also be able to fact check arguments made by the agents (see <code>Information Retrieval</code> below).
-
-The moderator will essentially be doing a form of <b>lateral reading</b> by fact checking both sides of the debate.
-
-#### Bin 5
-
-Provide a description of the claim and make a note that it is highly subjective.
-
-## Information Retrieval
-
-``` mermaid
-flowchart LR
-  UserQuery --> EmbedQuery
-  EmbedQuery -->|similarity| VectorDB
-  UserQuery -->|text search| KeywordIndex
-  VectorDB --> CandidateDocs
-  KeywordIndex --> CandidateDocs
-  CandidateDocs --> RankAndFilter
-  RankAndFilter -->|if score < T| FallbackWebSearch
-  RankAndFilter --> FinalContext
-  FinalContext --> LLM 
+```
+TrecDylanDan/
+├── main.py                          # Main pipeline entry point
+├── topics.py                        # Sample topic definitions
+├── trec-2025-dragun-topics.jsonl    # TREC topics file
+├── src/
+│   ├── IR_Ensemble/                 # Information Retrieval System
+│   │   ├── context_builder.py       # Context generation orchestrator
+│   │   └── QA_Assistant/            # Search and retrieval components
+│   │       ├── Searcher.py          # Search interface with Cohere reranking
+│   │       ├── bucket_monitor.py    # Rate limiting
+│   │       ├── daemon_wrapper.py    # JVM daemon management
+│   │       ├── Search/              # Java-based BM25 search implementation
+│   │       └── ...
+│   ├── ReportGenerator/             # Report generation system
+│   │   ├── report_generator.py      # Main report generator
+│   │   └── prompts.py               # Generation prompts
+│   ├── ReportEvaluator/             # Report evaluation system
+│   │   ├── report_evaluator.py      # Report evaluator
+│   │   └── prompts.py               # Evaluation prompts
+│   ├── RunGeneration/               # TREC output generation
+│   │   ├── generate_runs.py         # Generate TREC runs
+│   │   ├── test_run_format.py       # Format validation
+│   │   ├── convert_to_run_format.py # Format conversion
+│   │   └── README.md                # TREC documentation
+│   ├── DebateAndReport/             # Debate system (archived)
+│   └── QuestionGeneration/          # Question generation (archived)
+├── Archive/                         # Historical implementations
+├── DerivedData/                     # Generated data and outputs
+├── MarcoIndex/                      # Search index storage
+└── .env                             # Environment configuration
 ```
 
-1. EmbedQuery: convert the user’s question into a vector (e.g. OpenAI embeddings).
-2. VectorDB: search your local FAISS/Pinecone/Weaviate (clueweb for us) index for the top-K semantically closest docs.
-3. KeywordIndex: run a BM25 (or Elasticsearch) query in parallel for exact term matches.
-4. Merge & Rank: unify those two lists, dedupe, then rank by a combined score (e.g. α·cosine + (1−α)·BM25).
-5. Threshold Check: if your best candidate’s score is below a set threshold, it likely means “I don’t really know this locally”—so fall back to a live web search API.
-6. LLM Augmentation: feed the top N local docs (and/or web snippets if you fell back) into your prompt.
+## 🚀 Quick Start
 
-See more [Here](https://chatgpt.com/share/68336792-7d48-8012-91b2-b471b190bcf7)
+### Prerequisites
 
-## Possible Debate Formats
+1. **Python Environment**: Python 3.8+ with virtual environment
+2. **Java Runtime**: Java 8+ for BM25 search functionality
+3. **Dependencies**: Install required packages from virtual environment
+4. **Environment Variables**: Configure `.env` file
 
-> REMOVE MODERATOR 
+### Installation
 
-### 1. Mini Oxford-Style LLM Debate (≈7 turns)
+```bash
+# Clone the repository
+git clone <repository-url>
+cd TrecDylanDan
 
-* **Roles**
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-  * **Proponent (Agent✓)**—supports the interpretive/value claim.
-  * **Opponent (Agent✗)**—refutes the claim.
-  * **Moderator (Mod)**—introduces the claim, triggers retrieval checks, summarizes.
+# Install dependencies (packages are already installed in virtual environment)
+# The project uses a pre-configured virtual environment
 
-* **Turn Structure**
+# Configure environment
+# Create .env file with your API keys and settings
+```
 
-  1. **Mod:** “Claim: …“ (1 turn)
-  2. **Agent✓:** Opening (≤200 tokens)
-  3. **Agent✗:** Opening (≤200 tokens)
-  4. **Mod:** “Fact-check Round”
+### Environment Configuration
 
-     * Runs your Vector+BM25 merge on each side’s top 2 assertions.
-     * Shares 1–2 vetted counter-evidence points (≤100 tokens).
-  5. **Agent✓:** Rebuttal (≤150 tokens)
-  6. **Agent✗:** Rebuttal (≤150 tokens)
-  7. **Mod:** Closing summary (≤100 tokens) & verdict note
+Create a `.env` file with the following variables:
 
-* **Why it works:**
+```bash
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+AZURE_OPENAI_KEY=your_azure_openai_key
+AZURE_OPENAI_ENDPOINT=your_azure_endpoint
 
-  * Keeps the feed-forward flow of Oxford style.
-  * Embeds a single, focused IR check mid-debate.
-  * Fits neatly into a handful of LLM turns.
+# File Paths
+CONTEXT_PATH=DerivedData/ContextBuilder/context.txt
+REPORT_PATH=DerivedData/Report/report.txt
+EVAL_PATH=DerivedData/Evaluation/eval.txt
+
+# Search Configuration
+COHERE_API_KEY=your_cohere_api_key
+BM25_RESULTS_PATH=DerivedData/SearchResults
+```
+
+### Basic Usage
+
+```bash
+# Run the main pipeline with sample topic
+python main.py
+
+# Generate TREC runs from topics file
+python src/RunGeneration/generate_runs.py trec-2025-dragun-topics.jsonl runs.jsonl --max-topics 5
+
+# Validate TREC output format
+python src/RunGeneration/test_run_format.py runs.jsonl
+```
+
+## 🔧 Core Components
+
+### 1. Information Retrieval (IR_Ensemble)
+
+The IR system provides context and evidence for report generation:
+
+- **ContextProctor**: Orchestrates concurrent search operations (max 4 workers)
+- **Searcher**: Interfaces with Java BM25 search and Cohere reranking
+- **Bucket Monitor**: Manages rate limiting and API quotas
+- **JVMDaemon**: Manages Java-based search daemon for BM25 operations
+- **Question Evaluation**: Assesses search result quality
+
+```python
+from src.IR_Ensemble.context_builder import ContextProctor
+
+# Create context from questions
+proc = ContextProctor(client, questions)
+await proc.create_context()
+```
+
+### 2. Report Generator
+
+Generates comprehensive reports using AI:
+
+- **ReportGenerator**: Main report generation class
+- **Iterative Improvement**: Up to 3 rounds of refinement (MAX_ROUNDS = 3)
+- **Context Integration**: Incorporates search results
+- **Note Tracking**: Maintains generation history
+- **Structured Output**: Generates JSON with responses and citations
+
+```python
+from src.ReportGenerator.report_generator import ReportGenerator
+
+# Generate report
+generator = ReportGenerator(client=client, topic=topic)
+report, notes = await generator.generate_report(context, previous_notes)
+```
+
+### 3. Report Evaluator
+
+Evaluates report quality and generates improvement suggestions:
+
+- **ReportEvaluator**: Main evaluation class
+- **Quality Assessment**: Evaluates 6 criteria (coverage, accuracy, citation_quality, style, prioritization, completeness)
+- **Scoring System**: Each criterion scored 1-5, weighted for total score
+- **Question Generation**: Creates IR questions for gaps
+- **Status Tracking**: PASS/FAIL based on 90% threshold of maximum score
+
+```python
+from src.ReportEvaluator.report_evaluator import ReportEvaluator, EvalStatus
+
+# Evaluate report
+evaluator = ReportEvaluator(client=client, topic=topic)
+notes, questions = await evaluator.evaluate(report, context, generator_notes)
+```
+
+### 4. TREC Run Generation
+
+Generates TREC-2025-DRAGUN compliant outputs:
+
+- **Format Compliance**: Ensures proper JSONL structure
+- **Validation**: Checks word limits and citation formats
+- **Batch Processing**: Handles multiple topics efficiently
+- **Team Integration**: Configurable team IDs and run IDs
+
+```bash
+# Generate runs for TREC submission
+python src/RunGeneration/generate_runs.py topics.jsonl runs.jsonl \
+    --team-id SCIAI \
+    --run-id SCIAI-final-run \
+    --type automatic
+```
+
+## 📊 Document Classification System
+
+The system classifies documents into 6 bins based on claim type:
+
+| Bin | Name | Description | Example |
+|-----|------|-------------|---------|
+| 0 | Verifiable Fact | Objective, checkable statements | "Water boils at 100°C" |
+| 1 | Statistical Claim | Data-driven assertions | "Unemployment fell to 5.2%" |
+| 2 | Causal Claim | Cause-effect relationships | "Exercise reduces heart disease risk" |
+| 3 | Interpretive Claim | Analysis and conclusions | "Broadband drives remote work" |
+| 4 | Value Judgment | Normative statements | "Governments should ban plastics" |
+| 5 | Subjective Preference | Personal opinions | "Blue is the best color" |
+
+## 🔄 Pipeline Flow
+
+### Main Pipeline (`main.py`)
+
+1. **Initialization**: Set up OpenAI and Azure OpenAI clients
+2. **Topic Processing**: Load and process input topic
+3. **Iterative Loop**: 
+   - Generate report (up to 3 rounds)
+   - Evaluate quality
+   - Retrieve additional context if needed
+   - Repeat until quality threshold met or max rounds reached
+4. **Output**: Final report and TREC-compliant files
+
+### Information Retrieval Process
+
+1. **Question Generation**: Create search queries from evaluation
+2. **BM25 Search**: Java-based search using Lucene
+3. **Cohere Reranking**: Rerank top 75 results using Cohere v3.5
+4. **Result Aggregation**: Select top 15 results
+5. **Context Building**: Create comprehensive context for report generation
+
+### Report Generation Process
+
+1. **Context Integration**: Incorporate search results
+2. **Report Creation**: Generate structured JSON with responses and citations
+3. **Note Tracking**: Maintain generation history
+4. **Iterative Refinement**: Improve based on feedback (max 3 rounds)
+
+## 📈 TREC-2025-DRAGUN Integration
+
+The system generates TREC-compliant outputs with:
+
+- **Proper Format**: JSONL with metadata and responses
+- **Word Limits**: ≤250 words total across responses
+- **Citations**: Up to 4 citations per response (as per actual implementation)
+- **Team Information**: Configurable team and run IDs
+
+### Output Format
+
+```json
+{
+  "metadata": {
+    "team_id": "SCIAI",
+    "run_id": "SCIAI-run-example",
+    "topic_id": "msmarco_v2.1_doc_xx_xxxxx0",
+    "type": "automatic",
+    "use_starter_kit": 0
+  },
+  "responses": [
+    {
+      "text": "Generated sentence with facts.",
+      "citations": ["doc_id#segment_id"]
+    }
+  ]
+}
+```
+
+## 🛠️ Development
+
+### Adding New Components
+
+1. **Create Module**: Add new directory in `src/`
+2. **Implement Class**: Follow existing patterns
+3. **Add Integration**: Update main pipeline
+4. **Test**: Validate with sample data
+
+### Configuration
+
+- **Rate Limits**: Adjust in `bucket_monitor.py`
+- **Model Selection**: Configure in component files
+- **File Paths**: Set in `.env` file
+- **Search APIs**: Configure in `Searcher.py`
+- **Java Classpath**: Configure in `daemon_wrapper.py`
+
+### Testing
+
+```bash
+# Test individual components
+python -m pytest tests/
+
+# Test TREC format
+python src/RunGeneration/test_run_format.py sample
+
+# Test full pipeline
+python main.py
+```
+
+## 📚 Documentation
+
+- **TREC Integration**: See `src/RunGeneration/README.md`
+- **Component Details**: Check individual module docstrings
+- **Archived Features**: See `Archive/` directory
+- **API Documentation**: Refer to component source files
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. **Create** feature branch
+3. **Implement** changes
+4. **Test** thoroughly
+5. **Submit** pull request
+
+## 📄 License
+
+[Add your license information here]
+
+## 🙏 Acknowledgments
+
+- TREC-2025-DRAGUN organizers
+- OpenAI and Azure OpenAI for AI services
+- Cohere for search reranking capabilities
+- Apache Lucene for BM25 search implementation
+- Contributors and maintainers
 
 ---
 
-### 2. Four-Corners LLM Debate (≈5 turns)
-
-* **Roles**
-
-  * **Agent▲ (Agree)** & **Agent△ (Strongly Agree)**
-  * **Agent▽ (Disagree)** & **Agent▼ (Strongly Disagree)**
-  * **Mod** (same as above)
-
-* **Turn Structure**
-
-  1. **Mod:** “Claim: …“ (1)
-  2. **Corner Statements:** Each of the four “corner” agents posts a **short** position (≤100 tokens each)
-  3. **Mod:** IR check—pull top counter-examples for 2 corners with highest BM25 scores (1 turn)
-  4. **Pair Rebuttals:** Two rounds where opposite-corner agents each respond (≤100 tokens each, 4 messages total)
-  5. **Mod:** “Key takeaways” summary (≤150 tokens)
-
-* **Why it works:**
-
-  * Simulates group-think diversity in four viewpoints.
-  * Moderator intervenes once to “lateral read” and disrupt echo chambers.
-  * Very compact: ideal for a single LLM API session.
-
----
-
-### 3. Micro Cambridge-Style LLM Debate (≈9 turns)
-
-* **Roles**
-
-  * **PM (Prime Minister)** & **LO (Leader of Opposition)**
-  * **DPM (Deputy PM)** & **DLO (Deputy LO)**
-  * **Mod**
-
-* **Turn Structure**
-
-  1. **Mod:** “Motion: …“ (1)
-  2. **PM:** Opening (≤150 tokens)
-  3. **LO:** Opening (≤150 tokens)
-  4. **Mod:** Quick IR check on one key PM + one key LO point (1)
-  5. **DPM:** Rebuttal (≤100 tokens)
-  6. **DLO:** Rebuttal (≤100 tokens)
-  7. **PM:** Reply (≤80 tokens)
-  8. **LO:** Reply (≤80 tokens)
-  9. **Mod:** Final summary & graded confidence (≤100 tokens)
-
-* **Why it works:**
-
-  * Offers layered openings and replies, teaching LLMs to structure argument depth.
-  * Embeds exactly one moderation check to keep token-cost low.
-
----
-
-### 4. Ping-Pong LLM Debate (≈6 turns)
-
-* **Roles**
-
-  * **Agent✓** vs. **Agent✗** vs. **Mod**
-
-* **Turn Structure**
-
-  1. **Mod:** “Prompt: …“ (1)
-  2. **Agent✓:** Pro stance (≤150 tokens)
-  3. **Agent✗:** Con stance (≤150 tokens)
-  4. **Mod:** IR jump—fetch 1 supporting snippet for each side (1)
-  5. **Agent✓:** Rebuttal (≤100 tokens)
-  6. **Agent✗:** Rebuttal (≤100 tokens)
-  7. *(Optional)* **Mod:** Verdict note (≤80 tokens)
-
-* **Why it works:**
-
-  * Ultra-concise “exchange.”
-  * Moderator interjects once mid-pong to ground claims in real evidence.
-
-
-See more [Here](https://chatgpt.com/share/68336e3b-dc3c-8012-99b2-8d7ceb9027c2)
-
----
-
-Exact token counts may be adjusted as needed
+For detailed TREC run generation instructions, see `src/RunGeneration/README.md`.
 
