@@ -300,35 +300,3 @@ python src/RunGeneration/test_run_format.py sample
 # Test full pipeline
 python main.py
 ```
-
-## 📚 Documentation
-
-- **TREC Integration**: See `src/RunGeneration/README.md`
-- **Component Details**: Check individual module docstrings
-- **Archived Features**: See `Archive/` directory
-- **API Documentation**: Refer to component source files
-
-## 🤝 Contributing
-
-1. **Fork** the repository
-2. **Create** feature branch
-3. **Implement** changes
-4. **Test** thoroughly
-5. **Submit** pull request
-
-## 📄 License
-
-[Add your license information here]
-
-## 🙏 Acknowledgments
-
-- TREC-2025-DRAGUN organizers
-- OpenAI and Azure OpenAI for AI services
-- Cohere for search reranking capabilities
-- Apache Lucene for BM25 search implementation
-- Contributors and maintainers
-
----
-
-For detailed TREC run generation instructions, see `src/RunGeneration/README.md`.
-
