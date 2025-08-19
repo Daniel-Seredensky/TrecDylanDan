@@ -1,0 +1,75 @@
+# Python bytecode
+__pycache__/
+*__pycache__
+*.pyc
+
+# Virtual environment
+.venv/
+*.venv
+*.conda
+
+# Environment file
+.env
+*.env
+
+# IDE and editor files
+*.vscode
+.vscode/
+
+# OS files
+*.DS_Store
+.DS_Store
+Thumbs.db
+
+# Project-specific files
+clueweb
+
+# Project-specific generated files
+DerivedData/CluewebIndex/*
+DerivedData/SearchResults/*
+DerivedData/BinAgent/*
+DerivedData/ContextBuilder/*
+DerivedData/MSMarcoIndex
+DerivedData/Report/*
+DerivedData/Throughput/*
+DerivedData/Evaluation/*
+MarcoIndex/*
+!MarcoIndex/.gitkeep
+DerivedData/Assistant/AssistantId.txt
+cleanup.txt
+
+# Keep empty directories
+!DerivedData/CluewebIndex/.gitkeep
+!DerivedData/SearchResults/.gitkeep
+!DerivedData/BinAgent/.gitkeep
+!DerivedData/ContextBuilder/.gitkeep
+!DerivedData/Report/.gitkeep
+!DerivedData/Throughput/.gitkeep
+!DerivedData/Evaluation/.gitkeep
+
+# Generated reports and runs
+japan_report.json
+japan_run.json
+japan_run_new.json
+runs.jsonl
+*.jsonl
+!trec-2025-dragun-topics.jsonl
+
+# Archive directory
+Archive/
+
+# Duplicate/old directories
+src/QA_Assistant/
+src/src/
+
+# Java compiled files
+*.class
+
+# misc
+src/test.py
+.cursorignore
+answer.txt
+specs.txt
+spoof.py
+japan_report.json
+topics.py
